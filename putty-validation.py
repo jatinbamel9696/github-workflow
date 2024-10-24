@@ -16,9 +16,10 @@ def get_instance_hostname(instance_id):
         return None
 
 def write_report(instance_id, hostname, validation_status, key_path):
+    """Writes the validation report to a file."""
     # Create the reports directory if it doesn't exist
     report_dir = 'reports/putty-validation/'
-    os.makedirs(report_dir, exist_ok=True)  # Create the directory if it doesn't exist
+    os.makedirs(report_dir, exist_ok=True)
 
     # Create a report file with a timestamp
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -34,19 +35,20 @@ def write_report(instance_id, hostname, validation_status, key_path):
     return report_file
 
 def validate_connection(hostname, user, key_path):
-    """Attempts to connect to the instance using PuTTY."""
+    """Attempts to connect to the instance using SSH."""
     # Set permissions for the private key
     os.chmod(key_path, 0o600)
     
     print(f"Connecting to {hostname} with user {user}...")
-    
-    # Command to execute on the remote host, replace 'commands-to-run.txt' with the actual command you want to run
-    command_to_run = f"putty -i {key_path} {user}@{hostname} -m commands-to-run.txt"
+
+    # Command to execute on the remote host
+    command_to_run = f"ssh -i {key_path} {user}@{hostname} 'echo Connected'"  # Adjust command as needed
     
     # Execute the command
     try:
         result = subprocess.run(command_to_run, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        return "Validation successful!"
+        output = result.stdout.decode('utf-8').strip()  # Get command output
+        return "Validation successful! Output: " + output
     except subprocess.CalledProcessError as e:
         print(f"Validation failed! Error: {e.stderr.decode('utf-8')}")
         return "Validation failed!"
@@ -67,5 +69,6 @@ if __name__ == "__main__":
         report_path = write_report(instance_id, hostname, validation_status, key_path)
         print(report_path)  # Output the report path for the workflow to capture
     else:
-        write_report(instance_id, "N/A", "Failed to retrieve hostname", key_path)
+        validation_status = "Failed to retrieve hostname"
+        write_report(instance_id, "N/A", validation_status, key_path)
         sys.exit(1)

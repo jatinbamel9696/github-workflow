@@ -13,7 +13,7 @@ env:
 permissions:
   id-token: write
   contents: read
-  
+
 jobs:
   validate-instance:
     runs-on: ubuntu-latest
@@ -56,10 +56,16 @@ jobs:
         report_path=$(python ./putty-validation.py ${{ env.INSTANCE_ID }})
         echo "PUTTY_REPORT_PATH=$report_path" >> $GITHUB_ENV  # Store report path
 
-    - name: Gather Instance Details
+    # - name: Gather Instance Details
+    #   run: |
+    #     report_path=$(python ./instance-details.py ${{ env.INSTANCE_ID }})
+    #     echo "INSTANCE_REPORT_PATH=$report_path" >> $GITHUB_ENV  # Store report path
+    - name: Run Instance Details Script
+      id: instance_details
       run: |
-        report_path=$(python ./instance-details.py ${{ env.INSTANCE_ID }})
-        echo "INSTANCE_REPORT_PATH=$report_path" >> $GITHUB_ENV  # Store report path
+       report_path=$(python ./instance-details.py ${{ env.INSTANCE_ID }})
+       echo "INSTANCE_REPORT_PATH=${report_path}" >> $GITHUB_ENV
+
 
     - name: Upload Putty Validation Report to S3
       run: |

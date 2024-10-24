@@ -15,7 +15,7 @@ def create_test_file(instance_id):
     try:
         with open(test_file_path, 'w') as f:
             f.write("Instance details collection test completed successfully.\n")
-        print(f"Test file written to {test_file_path}")
+        print(test_file_path)  # Output the path to stdout
     except Exception as e:
         print(f"Failed to write test file. Error: {e}")
         sys.exit(1)
@@ -29,4 +29,4 @@ if __name__ == "__main__":
 
     instance_id = sys.argv[1]
     report_path = create_test_file(instance_id)
-    print(report_path)  # Output the test file path for the workflow to capture
+    print(report_path)  # Output the report path for the workflow to capture

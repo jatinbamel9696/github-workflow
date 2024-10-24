@@ -60,20 +60,15 @@ jobs:
     #   run: |
     #     report_path=$(python ./instance-details.py ${{ env.INSTANCE_ID }})
     #     echo "INSTANCE_REPORT_PATH=$report_path" >> $GITHUB_ENV  # Store report path
-    - name: Run Instance Details Script
-      id: instance_details
-      run: |
-       report_path=$(python ./instance-details.py ${{ env.INSTANCE_ID }})
-       echo "INSTANCE_REPORT_PATH=${report_path}" >> $GITHUB_ENV
-
+    
 
     - name: Upload Putty Validation Report to S3
       run: |
         python ./upload_to_s3.py "${{ env.PUTTY_REPORT_PATH }}" "${{ env.S3_BUCKET_NAME }}"
 
-    - name: Upload Instance Details Report to S3
-      run: |
-        python ./upload_to_s3.py "${{ env.INSTANCE_REPORT_PATH }}" "${{ env.S3_BUCKET_NAME }}"
+    # - name: Upload Instance Details Report to S3
+    #   run: |
+    #     python ./upload_to_s3.py "${{ env.INSTANCE_REPORT_PATH }}" "${{ env.S3_BUCKET_NAME }}"
 
     - name: Failure Notification
       if: failure()

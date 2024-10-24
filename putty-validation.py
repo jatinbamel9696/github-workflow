@@ -16,22 +16,21 @@ def get_instance_hostname(instance_id):
         return None
 
 def write_report(instance_id, hostname, validation_status, key_path):
-    """Writes the validation report to a file with a timestamp."""
+    # Create the reports directory if it doesn't exist
+    report_dir = 'reports/putty-validation/'
+    os.makedirs(report_dir, exist_ok=True)  # Create the directory if it doesn't exist
+
+    # Create a report file with a timestamp
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    report_file = f"reports/putty-validation/validation_report_{instance_id}_{timestamp}.txt"
-    
+    report_file = f"{report_dir}validation_report_{instance_id}_{timestamp}.txt"
+
+    # Write the report
     with open(report_file, 'w') as f:
-        f.write("Validation Report for Instance ID: {}\n".format(instance_id))
-        f.write("--------------------------------------------------\n")
-        f.write("Hostname: {}\n".format(hostname))
-        f.write("Validation Status: {}\n".format(validation_status))
-        f.write("Validation completed on: {}\n".format(datetime.datetime.now()))
-        f.write("--------------------------------------------------\n")
-        f.write("Instance ID: {}\n".format(instance_id))
-        f.write("Private Key Path: {}\n".format(key_path))
-        f.write("--------------------------------------------------\n")
-    
-    print(f"Validation report created: {report_file}")
+        f.write(f"Validation Report for Instance ID: {instance_id}\n")
+        f.write(f"Hostname: {hostname}\n")
+        f.write(f"Validation Status: {validation_status}\n")
+        f.write(f"Key Path: {key_path}\n")
+
     return report_file
 
 def validate_connection(hostname, user, key_path):

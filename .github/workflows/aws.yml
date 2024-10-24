@@ -6,7 +6,7 @@ on:
 env:
   REGION: "us-east-1"  
   DEV_ROLE_ARN: "arn:aws:iam::992382823608:role/github-assumerole"
-  #PROD_ROLE_ARN: "arn:aws:iam::PROD_ACCOUNT_ID:role/ProdAssumeRole"
+  PROD_ROLE_ARN: "arn:aws:iam::PROD_ACCOUNT_ID:role/ProdAssumeRole"
   INSTANCE_ID: ""
 
 jobs:
@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        aws_account: [dev]
+        aws_account: [dev, prod]
     permissions:
       id-token: write
       contents: read
@@ -29,14 +29,14 @@ jobs:
         role-to-assume: ${{ matrix.aws_account == 'dev' && env.DEV_ROLE_ARN || matrix.aws_account == 'prod' && env.PROD_ROLE_ARN }}
         aws-region: ${{ env.REGION }}
 
-    - name: Fetch EC2 Instance ID
+    - name: Fetch Latest EC2 Instance ID
       run: |
-        instance_id=$(aws ec2 describe-instances --filters "Name=tag:YourTagName,Values=YourTagValue" --query 'Reservations[*].Instances[?State.Name==`running`].InstanceId' --output text)
+        instance_id=$(aws ec2 describe-instances --query 'Reservations[*].Instances[?State.Name==`running`].[InstanceId, LaunchTime]' --output text | sort -k2 -r | head -n 1 | awk '{print $1}')
         if [ -z "$instance_id" ]; then
           echo "No running instances found."
           exit 1
         fi
-        echo "Instance ID: $instance_id"
+        echo "Latest Instance ID: $instance_id"
         echo "INSTANCE_ID=$instance_id" >> $GITHUB_ENV  # Set the instance ID as an environment variable
 
     - name: Validate EC2 Instance Status

@@ -6,27 +6,30 @@ on:
 env:
   REGION: "us-east-1"  
   DEV_ROLE_ARN: "arn:aws:iam::992382823608:role/github-assumerole"
-  PROD_ROLE_ARN: "arn:aws:iam::PROD_ACCOUNT_ID:role/ProdAssumeRole"
   INSTANCE_ID: ""
+  S3_BUCKET_NAME: "test-j3"  # Replace with your S3 bucket name
 
 jobs:
   validate-instance:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        aws_account: [dev, prod]
-    permissions:
-      id-token: write
-      contents: read
-
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v3
 
-    - name: Configure AWS Credentials
+    - name: Configure AWS Credentials for Dev
+      id: configure-dev
+      if: github.event.inputs.environment == 'dev'
       uses: aws-actions/configure-aws-credentials@v4
       with:
-        role-to-assume: ${{ matrix.aws_account == 'dev' && env.DEV_ROLE_ARN || matrix.aws_account == 'prod' && env.PROD_ROLE_ARN }}
+        role-to-assume: ${{ env.DEV_ROLE_ARN }}
+        aws-region: ${{ env.REGION }}
+
+    - name: Configure AWS Credentials for Prod
+      id: configure-prod
+      if: github.event.inputs.environment == 'prod'
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ env.PROD_ROLE_ARN }}
         aws-region: ${{ env.REGION }}
 
     - name: Fetch Latest EC2 Instance ID
@@ -45,11 +48,23 @@ jobs:
 
     - name: Run PuTTY Validation Script
       run: |
-        chmod +x ./putty-validation.sh
-        ./putty-validation.sh ${{ env.INSTANCE_ID }}
-      continue-on-error: true
+        report_path=$(python3 ./putty-validation.py ${{ env.INSTANCE_ID }})
+        echo "PUTTY_REPORT_PATH=$report_path" >> $GITHUB_ENV  # Store report path
+
+    - name: Gather Instance Details
+      run: |
+        report_path=$(python3 ./instance-details.py ${{ env.INSTANCE_ID }})
+        echo "INSTANCE_REPORT_PATH=$report_path" >> $GITHUB_ENV  # Store report path
+
+    - name: Upload Putty Validation Report to S3
+      run: |
+        python3 ./upload_to_s3.py "${{ env.PUTTY_REPORT_PATH }}" "${{ env.S3_BUCKET_NAME }}"
+
+    - name: Upload Instance Details Report to S3
+      run: |
+        python3 ./upload_to_s3.py "${{ env.INSTANCE_REPORT_PATH }}" "${{ env.S3_BUCKET_NAME }}"
 
     - name: Failure Notification
       if: failure()
       run: |
-        echo "Validation failed for instance: ${{ env.INSTANCE_ID }} in account: ${{ matrix.aws_account }}"
+        echo "Validation failed for instance: ${{ env.INSTANCE_ID }} in environment: ${{ github.event.inputs.environment }}"

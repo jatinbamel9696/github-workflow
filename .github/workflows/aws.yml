@@ -8,10 +8,7 @@ env:
   DEV_ROLE_ARN: "arn:aws:iam::992382823608:role/github-assumerole"
   INSTANCE_ID: ""
   S3_BUCKET_NAME: "test-j3"  # Replace with your S3 bucket name
-
-permissions:
-  id-token: write
-  contents: read
+  PYTHON_VERSION: "3.10"  # Parameterize your Python version
 
 jobs:
   validate-instance:
@@ -19,6 +16,16 @@ jobs:
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
 
     - name: Configure AWS Credentials for Dev
       uses: aws-actions/configure-aws-credentials@v4
@@ -42,21 +49,21 @@ jobs:
 
     - name: Run PuTTY Validation Script
       run: |
-        report_path=$(python3 ./putty-validation.py ${{ env.INSTANCE_ID }})
+        report_path=$(python ./putty-validation.py ${{ env.INSTANCE_ID }})
         echo "PUTTY_REPORT_PATH=$report_path" >> $GITHUB_ENV  # Store report path
 
     - name: Gather Instance Details
       run: |
-        report_path=$(python3 ./instance-details.py ${{ env.INSTANCE_ID }})
+        report_path=$(python ./instance-details.py ${{ env.INSTANCE_ID }})
         echo "INSTANCE_REPORT_PATH=$report_path" >> $GITHUB_ENV  # Store report path
 
     - name: Upload Putty Validation Report to S3
       run: |
-        python3 ./reports-upload.py "${{ env.PUTTY_REPORT_PATH }}" "${{ env.S3_BUCKET_NAME }}"
+        python ./upload_to_s3.py "${{ env.PUTTY_REPORT_PATH }}" "${{ env.S3_BUCKET_NAME }}"
 
     - name: Upload Instance Details Report to S3
       run: |
-        python3 ./reports-upload.py "${{ env.INSTANCE_REPORT_PATH }}" "${{ env.S3_BUCKET_NAME }}"
+        python ./upload_to_s3.py "${{ env.INSTANCE_REPORT_PATH }}" "${{ env.S3_BUCKET_NAME }}"
 
     - name: Failure Notification
       if: failure()

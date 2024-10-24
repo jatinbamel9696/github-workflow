@@ -7,13 +7,19 @@ def create_test_file(instance_id):
     report_dir = 'reports/instance-detail/'
     os.makedirs(report_dir, exist_ok=True)  # Ensure the directory exists
 
+    # Format the timestamp for the filename
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    test_file_path = os.path.join(report_dir, f"test_file_{instance_id}_{timestamp}.txt")
+    test_file_name = f"test_file_{instance_id}_{timestamp}.txt"
+    test_file_path = os.path.join(report_dir, test_file_name)
     
-    with open(test_file_path, 'w') as f:
-        f.write("Instance details collection test completed successfully.\n")
+    try:
+        with open(test_file_path, 'w') as f:
+            f.write("Instance details collection test completed successfully.\n")
+        print(f"Test file written to {test_file_path}")
+    except Exception as e:
+        print(f"Failed to write test file. Error: {e}")
+        sys.exit(1)
 
-    print(f"Test file written to {test_file_path}")
     return test_file_path
 
 if __name__ == "__main__":

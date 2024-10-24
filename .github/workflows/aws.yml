@@ -10,6 +10,10 @@ env:
   S3_BUCKET_NAME: "test-j3"  # Replace with your S3 bucket name
   PYTHON_VERSION: "3.10"  # Parameterize your Python version
 
+permissions:
+  id-token: write
+  contents: read
+  
 jobs:
   validate-instance:
     runs-on: ubuntu-latest

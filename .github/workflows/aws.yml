@@ -17,19 +17,9 @@ jobs:
       uses: actions/checkout@v3
 
     - name: Configure AWS Credentials for Dev
-      id: configure-dev
-      if: github.event.inputs.environment == 'dev'
       uses: aws-actions/configure-aws-credentials@v4
       with:
         role-to-assume: ${{ env.DEV_ROLE_ARN }}
-        aws-region: ${{ env.REGION }}
-
-    - name: Configure AWS Credentials for Prod
-      id: configure-prod
-      if: github.event.inputs.environment == 'prod'
-      uses: aws-actions/configure-aws-credentials@v4
-      with:
-        role-to-assume: ${{ env.PROD_ROLE_ARN }}
         aws-region: ${{ env.REGION }}
 
     - name: Fetch Latest EC2 Instance ID
@@ -67,4 +57,4 @@ jobs:
     - name: Failure Notification
       if: failure()
       run: |
-        echo "Validation failed for instance: ${{ env.INSTANCE_ID }} in environment: ${{ github.event.inputs.environment }}"
+        echo "Validation failed for instance: ${{ env.INSTANCE_ID }} in environment: dev"

@@ -1,0 +1,27 @@
+name: EC2 Instance Validation
+
+on:
+  workflow_dispatch:
+
+jobs:
+  validate-instance:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: arn:aws:iam::992382823608:role/github-assumerole
+        aws-region: us-east-1
+
+    - name: Validate EC2 Instance
+      run: |
+        instance_id=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].InstanceId' --output text)
+        echo "Instance ID: $instance_id"
+        aws ec2 describe-instance-status --instance-ids $instance_id --output json

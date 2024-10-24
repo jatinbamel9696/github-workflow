@@ -20,10 +20,15 @@ if __name__ == "__main__":
     bucket_name = sys.argv[2]
 
     # Determine the appropriate object name for S3
-    object_name = ""
-    if "putty_validation_report" in file_name:
+    object_name = None
+    if "putty-validation" in file_name:
         object_name = f"reports/putty-validation/{os.path.basename(file_name)}"
-    elif "instance_report" in file_name:
+    elif "instance-detail" in file_name:
         object_name = f"reports/instance-detail/{os.path.basename(file_name)}"
+
+    # Check if object_name was assigned properly
+    if not object_name:
+        print("Error: Unable to determine the S3 object name based on the provided file name.")
+        sys.exit(1)
 
     upload_file_to_s3(file_name, bucket_name, object_name)

@@ -3,9 +3,18 @@ name: EC2 Instance Validation
 on:
   workflow_dispatch:
 
+env:
+  REGION: "us-east-1"  
+  DEV_ROLE_ARN: "arn:aws:iam::992382823608:role/github-assumerole"
+  PROD_ROLE_ARN: "arn:aws:iam::PROD_ACCOUNT_ID:role/ProdAssumeRole"
+  INSTANCE_ID: ""
+
 jobs:
   validate-instance:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        aws_account: [dev, prod]
     permissions:
       id-token: write
       contents: read
@@ -17,11 +26,26 @@ jobs:
     - name: Configure AWS Credentials
       uses: aws-actions/configure-aws-credentials@v4
       with:
-        role-to-assume: arn:aws:iam::992382823608:role/github-assumerole
-        aws-region: us-east-1
+        role-to-assume: ${{ matrix.aws_account == 'dev' && env.DEV_ROLE_ARN || matrix.aws_account == 'prod' && env.PROD_ROLE_ARN }}
+        aws-region: ${{ env.REGION }}
 
-    - name: Validate EC2 Instance
+    - name: Fetch EC2 Instance ID
       run: |
         instance_id=$(aws ec2 describe-instances --query 'Reservations[*].Instances[*].InstanceId' --output text)
         echo "Instance ID: $instance_id"
-        aws ec2 describe-instance-status --instance-ids $instance_id --output json
+        echo "INSTANCE_ID=$instance_id" >> $GITHUB_ENV  # Set the instance ID as an environment variable
+
+    - name: Validate EC2 Instance Status
+      run: |
+        aws ec2 describe-instance-status --instance-ids ${{ env.INSTANCE_ID }} --output json
+
+    - name: Run PuTTY Validation Script
+      run: |
+        chmod +x ./putty-validation.sh
+        ./putty-validation.sh ${{ env.INSTANCE_ID }}
+      continue-on-error: true
+
+    - name: Failure Notification
+      if: failure()
+      run: |
+        echo "Validation failed for instance: ${{ env.INSTANCE_ID }} in account: ${{ matrix.aws_account }}"

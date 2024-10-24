@@ -64,7 +64,7 @@ jobs:
 
     - name: Upload Putty Validation Report to S3
       run: |
-        python ./upload_to_s3.py "${{ env.PUTTY_REPORT_PATH }}" "${{ env.S3_BUCKET_NAME }}"
+        python ./reports-upload.py "${{ env.PUTTY_REPORT_PATH }}" "${{ env.S3_BUCKET_NAME }}"
 
     # - name: Upload Instance Details Report to S3
     #   run: |

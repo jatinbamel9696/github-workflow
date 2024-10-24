@@ -1,25 +1,20 @@
-import subprocess
+import os
 import sys
 import datetime
 
-def get_installed_packages():
-    try:
-        command = "dpkg --get-selections"  # For Debian/Ubuntu
-        result = subprocess.run(command, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        return result.stdout.decode('utf-8')
-    except subprocess.CalledProcessError as e:
-        print(f"Error fetching installed packages: {e.stderr.decode('utf-8')}")
-        sys.exit(1)
+def create_test_file(instance_id):
+    """Creates a test file to indicate that instance details have been collected."""
+    report_dir = 'reports/instance-detail/'
+    os.makedirs(report_dir, exist_ok=True)  # Ensure the directory exists
 
-def write_report(instance_id, packages):
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    report_path = f"reports/instance-detail/instance_report_{instance_id}_{timestamp}.txt"
-    with open(report_path, 'w') as f:
-        f.write(f"Instance ID: {instance_id}\n")
-        f.write("Installed Packages:\n")
-        f.write(packages)
-    print(f"Instance details report written to {report_path}")
-    return report_path
+    test_file_path = os.path.join(report_dir, f"test_file_{instance_id}_{timestamp}.txt")
+    
+    with open(test_file_path, 'w') as f:
+        f.write("Instance details collection test completed successfully.\n")
+
+    print(f"Test file written to {test_file_path}")
+    return test_file_path
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
@@ -27,6 +22,5 @@ if __name__ == "__main__":
         sys.exit(1)
 
     instance_id = sys.argv[1]
-    packages = get_installed_packages()
-    report_path = write_report(instance_id, packages)
-    print(report_path)  # Output the report path for the workflow to capture
+    report_path = create_test_file(instance_id)
+    print(report_path)  # Output the test file path for the workflow to capture

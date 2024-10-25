@@ -3,53 +3,72 @@ import sys
 import json
 import boto3
 import yaml
-from botocore.exceptions import ClientError
 
-# Load configuration
 script_dir = os.path.dirname(os.path.abspath(__file__))
 common_folder = os.path.join(script_dir, 'common')
 
-try:
-    with open(os.path.join(common_folder, 'config.yml'), 'r') as file:
-        config = yaml.safe_load(file)
-except FileNotFoundError:
-    print("Configuration file 'config.yml' not found in 'common' folder.")
-    sys.exit(1)
+# Load the YAML file
+with open(os.path.join(common_folder, 'config.yml'), 'r') as file:
+    config = yaml.safe_load(file)
 
 def existing_tags(client, instance_name):
     '''
-    This method fetches the existing tag from the EC2 instance
+    This method fetches the existing tag from the ec2 instance
     '''
+    global config
     try:
         instances = client.describe_instances(
-            Filters=[{'Name': 'tag:Name', 'Values': [instance_name]}]
-        )
+            Filters=[
+                {
+                    'Name': 'tag:Name',
+                    'Values': [
+                        instance_name,
+                    ]
+                },
+            ])
         tag_set = instances["Reservations"][0]["Instances"][0]["Tags"]
-        reserve_tags_for_ec2 = config.get('reserve_tags_for_ec2', [])
+        reserve_tags_for_ec2 = config['reserve_tags_for_ec2']
+        keyset = []
+        for tag in tag_set:
+            keyset.append(tag['Key'])
         
-        tags = [tag['Key'] for tag in tag_set if tag['Key'] not in reserve_tags_for_ec2]
+        print(keyset)
+        tags = [i for i in keyset if i not in reserve_tags_for_ec2]
+
         
-        print("Retrieved tags: ", tags)
-        return tags if tags else []
-    
-    except ClientError as e:
-        if "AccessDenied" in str(e):
-            print("Access Denied: No instance found with this name in the selected account.")
-            return ["Access Denied: No instance found with this name in the selected account."]
+        print("Exit from Existing Tags...!") 
+        if len(tags) > 0:
+            return tags
         else:
-            print("Error retrieving tags:", e)
-            return ["Error: Unable to retrieve tags."]
+            return []
+        
+    except Exception as e:
+        print("EXCEPTION : existing_tags>>>>>>", str(e))
+        tag_set = ' '
+        ClientError = "An error occurred (AccessDenied)"
+
+        if ClientError in str(e):
+            print("EXCEPTION: No Instance found with this name in the selected account")
+            return["EXCEPTION: No Instance found with this name in the selected account"]
+        else:
+            print("EXCEPTION in Existing Tags : ", str(e))
+            return["EXCEPTION: No Instance found with this name in the selected account"]
 
 def main_connection():
-    if len(sys.argv) != 2:
-        print("Usage: python aws_tags.py <instance_name>")
-        sys.exit(1)
+    try:
+        # Accept Instance from cmd
+        if len(sys.argv) != 2:
+            print("Usage: python aws_tags.py <instance_name>")
+            sys.exit(1)
+        arguments = sys.argv
+        instance_name = arguments[1]
+        client = boto3.client('ec2')               
+               
+        tags  = existing_tags(client,instance_name)
+        print(tags)
     
-    instance_name = sys.argv[1]
-    client = boto3.client('ec2')
-    
-    tags = existing_tags(client, instance_name)
-    print("Final Tags:", tags)
+    except Exception as e:
+        print(repr(e))
 
 if __name__ == "__main__":
     main_connection()

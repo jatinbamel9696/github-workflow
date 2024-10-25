@@ -59,8 +59,8 @@ jobs:
 
     - name: list dir
       run: |
+        cat test.txt
         ls -la
-        cat text.txt
 
     # - name: Gather Instance Details
     #   run: |

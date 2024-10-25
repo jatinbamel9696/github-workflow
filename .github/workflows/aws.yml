@@ -53,7 +53,7 @@ jobs:
 
     - name: Run PuTTY Validation Script
       run: |
-        report_path=$(python ./putty-validation.py ${{ env.INSTANCE_ID }})
+        report_path=$(python ./putty-validation.py "3.80.247.247")
         echo "PUTTY_REPORT_PATH=$report_path" >> $GITHUB_ENV  # Store report path
 
     # - name: Gather Instance Details

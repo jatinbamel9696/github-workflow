@@ -61,7 +61,8 @@ def main_connection():
     print(type(tags))
 
     with open("test.txt", 'a') as f:
-        f.write(tags)
+        final_t = ','.join(tags)
+        f.write(final_t)
 
     # Write only the joined tags string to $GITHUB_ENV if running in GitHub Actions
     if os.getenv('GITHUB_ENV'):
@@ -71,5 +72,3 @@ def main_connection():
 
 if __name__ == "__main__":
     main_connection()
-
-

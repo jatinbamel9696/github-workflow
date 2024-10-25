@@ -55,13 +55,14 @@ def main_connection():
     client = boto3.client('ec2')
     
     tags = existing_tags(client, instance_name)
+    
+    # Only print the final tags to console
     print("Final Tags:", tags)
-    print(type(tags))
 
-    # Format tags as comma-separated string for GitHub Actions environment
+    # Write only the joined tags string to $GITHUB_ENV if running in GitHub Actions
     if os.getenv('GITHUB_ENV'):
         with open(os.getenv('GITHUB_ENV'), 'a') as env_file:
-            formatted_tags = ','.join(tags)
+            formatted_tags = ','.join(tags)  # Join tags with commas, no list brackets
             env_file.write(f"FINAL_TAGS={formatted_tags}\n")
 
 if __name__ == "__main__":

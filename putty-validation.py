@@ -24,6 +24,9 @@ def existing_tags(client, instance_name):
         instances = client.describe_instances(
             Filters=[{'Name': 'tag:Name', 'Values': [instance_name]}]
         )
+        if not instances["Reservations"]:
+            print(f"No instances found with the name: {instance_name}")
+            return []
         # tag_set = instances["Reservations"][0]["Instances"][0]["Tags"]
         tag_set = instances["Reservations"][0]["Instances"][0].get("Tags", [])
         reserve_tags_for_ec2 = config.get('reserve_tags_for_ec2', [])

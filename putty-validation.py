@@ -57,7 +57,8 @@ def main_connection():
     tags = existing_tags(client, instance_name)
     
     # Only print the final tags to console
-    print("Final Tags:", tags)
+    print(tags)
+    print(type(tags))
 
     # Write only the joined tags string to $GITHUB_ENV if running in GitHub Actions
     if os.getenv('GITHUB_ENV'):

@@ -1,74 +1,75 @@
 import os
 import sys
-import json
 import boto3
 import yaml
+from botocore.exceptions import ClientError
 
+# Load configuration
 script_dir = os.path.dirname(os.path.abspath(__file__))
 common_folder = os.path.join(script_dir, 'common')
 
-# Load the YAML file
-with open(os.path.join(common_folder, 'config.yml'), 'r') as file:
-    config = yaml.safe_load(file)
+try:
+    with open(os.path.join(common_folder, 'config.yml'), 'r') as file:
+        config = yaml.safe_load(file)
+except FileNotFoundError:
+    print("Configuration file 'config.yml' not found in 'common' folder.")
+    sys.exit(1)
 
 def existing_tags(client, instance_name):
     '''
-    This method fetches the existing tag from the ec2 instance
+    This method fetches the existing tags from the EC2 instance.
     '''
-    global config
     try:
         instances = client.describe_instances(
-            Filters=[
-                {
-                    'Name': 'tag:Name',
-                    'Values': [
-                        instance_name,
-                    ]
-                },
-            ])
-        tag_set = instances["Reservations"][0]["Instances"][0]["Tags"]
-        reserve_tags_for_ec2 = config['reserve_tags_for_ec2']
-        keyset = []
-        for tag in tag_set:
-            keyset.append(tag['Key'])
+            Filters=[{'Name': 'tag:Name', 'Values': [instance_name]}]
+        )
         
-        print(keyset)
-        tags = [i for i in keyset if i not in reserve_tags_for_ec2]
-
-        
-        print("Exit from Existing Tags...!") 
-        if len(tags) > 0:
-            return tags
-        else:
+        # Check if any instances are found
+        if not instances["Reservations"]:
+            print(f"No instances found with the name: {instance_name}")
             return []
-        
-    except Exception as e:
-        print("EXCEPTION : existing_tags>>>>>>", str(e))
-        tag_set = ' '
-        ClientError = "An error occurred (AccessDenied)"
 
-        if ClientError in str(e):
-            print("EXCEPTION: No Instance found with this name in the selected account")
-            return["EXCEPTION: No Instance found with this name in the selected account"]
+        tag_set = instances["Reservations"][0]["Instances"][0].get("Tags", [])
+        reserve_tags_for_ec2 = config['reserve_tags_for_ec2']
+        
+        # Filter out reserved tags
+        tags = [tag['Key'] for tag in tag_set if tag['Key'] not in reserve_tags_for_ec2]
+        
+        print("Retrieved tags:", tags)
+        return tags if tags else []
+    
+    except ClientError as e:
+        if "AccessDenied" in str(e):
+            print("Access Denied: No instance found with this name in the selected account.")
+            return ["Access Denied"]
         else:
-            print("EXCEPTION in Existing Tags : ", str(e))
-            return["EXCEPTION: No Instance found with this name in the selected account"]
+            print("Error retrieving tags:", e)
+            return ["Error: Unable to retrieve tags."]
 
 def main_connection():
-    try:
-        # Accept Instance from cmd
-        if len(sys.argv) != 2:
-            print("Usage: python aws_tags.py <instance_name>")
-            sys.exit(1)
-        arguments = sys.argv
-        instance_name = arguments[1]
-        client = boto3.client('ec2')               
-               
-        tags  = existing_tags(client,instance_name)
-        print(tags)
+    if len(sys.argv) != 2:
+        print("Usage: python putty-validation.py <instance_name>")
+        sys.exit(1)
     
-    except Exception as e:
-        print(repr(e))
+    instance_name = sys.argv[1]
+    client = boto3.client('ec2')
+    
+    tags = existing_tags(client, instance_name)
+    
+    # Only print the final tags to console
+    print("Final Tags:", tags)
+    print(type(tags))
+
+    with open("test.txt", 'a') as f:
+        f.write(tags)
+
+    # Write only the joined tags string to $GITHUB_ENV if running in GitHub Actions
+    if os.getenv('GITHUB_ENV'):
+        with open(os.getenv('GITHUB_ENV'), 'a') as env_file:
+            formatted_tags = ','.join(tags)  # Join tags with commas, no list brackets
+            env_file.write(f"FINAL_TAGS={formatted_tags}\n")
 
 if __name__ == "__main__":
     main_connection()
+
+

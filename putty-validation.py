@@ -17,7 +17,7 @@ except FileNotFoundError:
 
 def existing_tags(client, instance_name):
     '''
-    This method fetches the existing tags from the EC2 instance.
+    This method fetches the existing tags and their values from the EC2 instance.
     '''
     try:
         instances = client.describe_instances(
@@ -27,24 +27,24 @@ def existing_tags(client, instance_name):
         # Check if any instances are found
         if not instances["Reservations"]:
             print(f"No instances found with the name: {instance_name}")
-            return []
+            return {}
 
         tag_set = instances["Reservations"][0]["Instances"][0].get("Tags", [])
         reserve_tags_for_ec2 = config['reserve_tags_for_ec2']
         
-        # Filter out reserved tags
-        tags = [tag['Key'] for tag in tag_set if tag['Key'] not in reserve_tags_for_ec2]
+        # Create a dictionary of tags excluding reserved ones
+        tags = {tag['Key']: tag['Value'] for tag in tag_set if tag['Key'] not in reserve_tags_for_ec2}
         
-        print("Retrieved tags:", tags)
-        return tags if tags else []
+        print("Retrieved tags and values:", tags)
+        return tags if tags else {}
     
     except ClientError as e:
         if "AccessDenied" in str(e):
             print("Access Denied: No instance found with this name in the selected account.")
-            return ["Access Denied"]
+            return {"Error": "Access Denied"}
         else:
             print("Error retrieving tags:", e)
-            return ["Error: Unable to retrieve tags."]
+            return {"Error": "Unable to retrieve tags."}
 
 def main_connection():
     if len(sys.argv) != 2:
@@ -57,18 +57,13 @@ def main_connection():
     tags = existing_tags(client, instance_name)
     
     # Only print the final tags to console
-    print("Final Tags:", tags)
-    print(type(tags))
+    print("Final Tags and Values:", tags)
 
-    with open("test.txt", 'a') as f:
-        final_t = ','.join(tags)
-        f.write(final_t)
-
-    # Write only the joined tags string to $GITHUB_ENV if running in GitHub Actions
+    # Write tags as key-value pairs to $GITHUB_ENV if running in GitHub Actions
     if os.getenv('GITHUB_ENV'):
         with open(os.getenv('GITHUB_ENV'), 'a') as env_file:
-            formatted_tags = ','.join(tags)  # Join tags with commas, no list brackets
-            env_file.write(f"FINAL_TAGS={formatted_tags}\n")
+            for key, value in tags.items():
+                env_file.write(f"{key.upper()}={value}\n")
 
 if __name__ == "__main__":
     main_connection()

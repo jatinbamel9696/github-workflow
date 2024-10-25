@@ -60,11 +60,5 @@ def main_connection():
     print(tags)
     print(type(tags))
 
-    # Write only the joined tags string to $GITHUB_ENV if running in GitHub Actions
-    if os.getenv('GITHUB_ENV'):
-        with open(os.getenv('GITHUB_ENV'), 'a') as env_file:
-            formatted_tags = ','.join(tags)  # Join tags with commas, no list brackets
-            env_file.write(f"FINAL_TAGS={formatted_tags}\n")
-
 if __name__ == "__main__":
     main_connection()

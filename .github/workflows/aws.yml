@@ -54,7 +54,9 @@ jobs:
     - name: Run PuTTY Validation Script
       run: |
         report_path=$(python ./putty-validation.py "3.80.247.247")
-        echo "PUTTY_REPORT_PATH=$report_path" >> $GITHUB_ENV  # Store report path
+        ls -la ./common
+        cat ./common/aws_tags.json
+      #  echo "PUTTY_REPORT_PATH=$report_path" >> $GITHUB_ENV  # Store report path
       continue-on-error: true
 
     - name: list dir

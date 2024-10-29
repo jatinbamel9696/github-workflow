@@ -2,6 +2,7 @@ import os
 import sys
 import boto3
 import yaml
+import json
 from botocore.exceptions import ClientError
 
 # Load configuration
@@ -34,6 +35,9 @@ def existing_tags(client, instance_name):
         
         # Create a dictionary of tags excluding reserved ones
         tags = {tag['Key']: tag['Value'] for tag in tag_set if tag['Key'] not in reserve_tags_for_ec2}
+
+        with open(os.path.join(common_folder, 'aws_tags.json'), 'w') as json_file:
+            json.dump(tags, json_file, indent=4)
         
         print("Retrieved tags and values:", tags)
         return tags if tags else {}

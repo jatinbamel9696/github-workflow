@@ -38,6 +38,19 @@ jobs:
         role-to-assume: ${{ env.DEV_ROLE_ARN }}
         aws-region: ${{ env.REGION }}
 
+    - name: Retrieve Secrets and Set Custom Environment Variables
+      uses: aws-actions/aws-secretsmanager-get-secrets@v2
+      with:
+        secret-ids: |
+          SER_ACC_USER,test-auto#username
+          SER_ACC_PASS,test-auto#password
+          name-transformation: none
+  
+    - name: Verify Environment Variables
+      run: |
+        echo "Username: $SER_ACC_USER"
+        echo "Password: $SER_ACC_PASS"
+
     # - name: Fetch Latest EC2 Instance ID
     #   run: |
     #     instance_id=$(aws ec2 describe-instances --query 'Reservations[*].Instances[?State.Name==`running`].[InstanceId, LaunchTime]' --output text | sort -k2 -r | head -n 1 | awk '{print $1}')

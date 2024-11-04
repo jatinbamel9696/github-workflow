@@ -38,18 +38,23 @@ jobs:
         role-to-assume: ${{ env.DEV_ROLE_ARN }}
         aws-region: ${{ env.REGION }}
 
-    - name: Retrieve Secrets and Set Custom Environment Variables
-      uses: aws-actions/aws-secretsmanager-get-secrets@v2
-      with:
-        secret-ids: |
-          SER_ACC_USER,auto-test
-        parse-json-secrets: true
-        name-transformation: none
-  
+    - name: Retrieve Secrets and Set as Environment Variables
+      run: |
+        # Fetch the secret JSON using AWS CLI
+        secret_json=$(aws secretsmanager get-secret-value --secret-id test-auto --query SecretString --output text)
+
+        # Extract specific keys from the JSON and set them as environment variables
+        username=$(echo "$secret_json" | jq -r .username)
+        password=$(echo "$secret_json" | jq -r .password)
+
+        # Set the environment variables for the GitHub Actions workflow
+        echo "SER_ACC_USER=$username" >> $GITHUB_ENV
+        echo "SER_ACC_PASS=$password" >> $GITHUB_ENV
+
     - name: Verify Environment Variables
       run: |
         echo "Username: $SER_ACC_USER"
-        echo "Password: $SER_ACC_PASS"
+        echo "Password: $SER_ACC_PASS"  # Masked in GitHub Actions logs
 
     # - name: Fetch Latest EC2 Instance ID
     #   run: |

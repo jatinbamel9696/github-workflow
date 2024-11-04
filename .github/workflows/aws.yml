@@ -42,9 +42,9 @@ jobs:
       uses: aws-actions/aws-secretsmanager-get-secrets@v2
       with:
         secret-ids: |
-          SER_ACC_USER,test-auto#username
-          SER_ACC_PASS,test-auto#password
-          name-transformation: none
+          SER_ACC_USER,auto-test
+        parse-json-secrets: true
+        name-transformation: none
   
     - name: Verify Environment Variables
       run: |

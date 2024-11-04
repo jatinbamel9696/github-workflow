@@ -1,4 +1,4 @@
-name: EC2 Instance Validation
+name: EC2 Instance Validation---test
 
 on:
   workflow_dispatch:

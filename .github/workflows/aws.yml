@@ -37,32 +37,18 @@ jobs:
         role-to-assume: ${{ env.DEV_ROLE_ARN }}
         aws-region: ${{ env.REGION }}
 
-    # - name: Fetch Latest EC2 Instance ID
-    #   run: |
-    #     instance_id=$(aws ec2 describe-instances --query 'Reservations[*].Instances[?State.Name==`running`].[InstanceId, LaunchTime]' --output text | sort -k2 -r | head -n 1 | awk '{print $1}')
-    #     if [ -z "$instance_id" ]; then
-    #       echo "No running instances found."
-    #       exit 1
-    #     fi
-    #     echo "Latest Instance ID: $instance_id"
-    #     echo "INSTANCE_ID=$instance_id" >> $GITHUB_ENV  # Set the instance ID as an environment variable
 
-    # - name: Validate EC2 Instance Status
+    # - name: Run PuTTY Validation Script
     #   run: |
-    #     aws ec2 describe-instance-status --instance-ids ${{ env.INSTANCE_ID }} --output json
-
-    - name: Run PuTTY Validation Script
-      run: |
-        report_path=$(python ./putty-validation.py "3.80.247.247")
-        ls -la ./common
-        cat ./common/aws_tags.json
+    #     report_path=$(python ./putty-validation.py "3.80.247.247")
+    #     ls -la ./common
+    #     cat ./common/aws_tags.json
       #  echo "PUTTY_REPORT_PATH=$report_path" >> $GITHUB_ENV  # Store report path
       continue-on-error: true
 
-    - name: list dir
+    - name: s3 upload
       run: |
-        cat test.txt
-        ls -la
+        python reports-s3.py
 
     # - name: Gather Instance Details
     #   run: |

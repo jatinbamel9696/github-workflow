@@ -50,6 +50,12 @@ jobs:
       run: |
         python reports-s3.py
 
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: my-artifact
+        path: reports
+
     # - name: Gather Instance Details
     #   run: |
     #     report_path=$(python ./instance-details.py ${{ env.INSTANCE_ID }})

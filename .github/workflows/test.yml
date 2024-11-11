@@ -1,0 +1,18 @@
+name: Download Artifact
+
+on:
+  workflow_dispatch:  
+
+jobs:
+  download-and-use:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: my-artifact
+          path: ./downloaded-artifacts
+
+      - name: Verify Artifact
+        run: |
+          cat ./downloaded-artifacts/reports/report.html

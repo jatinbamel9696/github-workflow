@@ -57,9 +57,11 @@ jobs:
 
 
     - name: Log failures to a file
-      if: failure()  # Only run this step if any previous step failed
+      if: failure()  # Only run if any previous step failed
       run: |
-        echo "$(date): $(echo ${{ github.event_name }}) - Step failed at $(echo ${{ github.job }})" >> $GITHUB_WORKSPACE/reports/failure_log.txt
+        echo "Failure detected at $(date)" >> $GITHUB_WORKSPACE/reports/failure_log.txt
+        echo "Failed Step: ${{ github.job }} - $(steps.step_name.outcome)" >> $GITHUB_WORKSPACE/reports/failure_log.txt
+        echo "Error Message: $(steps.step_name.outcome)" >> $GITHUB_WORKSPACE/reports/failure_log.txt
 
     - name: Check and display failure log
       if: failure()  # Only run if previous steps failed

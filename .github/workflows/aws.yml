@@ -39,21 +39,32 @@ jobs:
         role-to-assume: ${{ env.DEV_ROLE_ARN }}
         aws-region: ${{ env.REGION }}
 
-    - name: insert github id request
-      run: |
-        echo "Inserting Github Event ID: $GITHUB_RUN_ID"
-        python scripts/db-update.py $GITHUB_RUN_ID
+    # - name: insert github id request
+    #   run: |
+    #     echo "Inserting Github Event ID: $GITHUB_RUN_ID"
+    #     python scripts/db-update.py $GITHUB_RUN_ID
 
 
     - name: s3 upload
       run: |
         python reports-s31.py
 
-    - name: insert failed status
-      if: failure()
+    # - name: insert failed status
+    #   if: failure()
+    #   run: |
+    #     echo "Inserting Failed Status: $GITHUB_RUN_ID"
+    #     python scripts/db-failed.py $GITHUB_RUN_ID
+
+
+    - name: Create Jira Defect
       run: |
-        echo "Inserting Failed Status: $GITHUB_RUN_ID"
-        python scripts/db-failed.py $GITHUB_RUN_ID
+        # Extract failed step details
+        failed_step=$(cat $GITHUB_WORKSPACE/reports/output.log | grep 'FAIL' | head -1 | awk '{print $2}')
+        log_file_path="$GITHUB_WORKSPACE/reports/output.log"
+
+        # Display the failed step and log file content (optional)
+        echo "Failed Step: $failed_step"
+        echo "Log File Path: $log_file_path"
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v3

@@ -9,7 +9,7 @@ import logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 # Initialize the DynamoDB client
-region = os.getenv('AWS_REGION', 'us-east-1')  # Allow region to be set via environment variable
+region = os.getenv('AWS_REGION', 'us-east-1')  # Adjust region if needed
 dynamodb = boto3.resource('dynamodb', region_name=region)
 
 def update_status_to_failed(request_id):
@@ -17,37 +17,32 @@ def update_status_to_failed(request_id):
     if not table_name:
         logging.error("Environment variable TABLE_NAME is not set.")
         sys.exit(1)
-
+    
     table = dynamodb.Table(table_name)
 
-    # Define the update expression and attribute values
+    # Define update expressions
     update_expression = "SET #status = :status, #update_timestamp = :update_timestamp"
     expression_attribute_names = {
         "#status": "Status",
-        "#update_timestamp": "update_timestamp",
-        "#request_id": "Request-Id"  # Use a placeholder for "Request-Id"
+        "#update_timestamp": "update_timestamp"
     }
     expression_attribute_values = {
-        ":status": "Failed",  # New status
-        ":update_timestamp": datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # Current time
+        ":status": "Failed",  # Set status to 'Failed'
+        ":update_timestamp": datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # Current timestamp
     }
 
     try:
-        # Perform the update with a condition to ensure the record exists
+        # Perform the update
         response = table.update_item(
-            Key={
-                '#request_id': request_id  # Use the placeholder for Request-Id
-            },
+            Key={'Request-Id': request_id},
             UpdateExpression=update_expression,
             ExpressionAttributeNames=expression_attribute_names,
             ExpressionAttributeValues=expression_attribute_values,
-            ConditionExpression="attribute_exists(#request_id)",  # Ensure the record exists
-            ReturnValues="UPDATED_NEW"  # Return only updated attributes
+            ConditionExpression="attribute_exists(Request-Id)",  # Ensure the record exists
+            ReturnValues="UPDATED_NEW"
         )
-
         logging.info(f"Successfully updated Request ID {request_id} to 'Failed'. Updated attributes: {response['Attributes']}")
         return response['Attributes']
-
     except ClientError as e:
         if e.response['Error']['Code'] == "ConditionalCheckFailedException":
             logging.error(f"Request ID {request_id} does not exist in the table.")
@@ -57,12 +52,8 @@ def update_status_to_failed(request_id):
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        logging.error("Usage: python update_status_failed.py <request_id>")
+        logging.error("Usage: python db-failed.py <request_id>")
         sys.exit(1)
 
     request_id = sys.argv[1]
-    if not request_id.strip():
-        logging.error("Request ID cannot be empty.")
-        sys.exit(1)
-
     update_status_to_failed(request_id)

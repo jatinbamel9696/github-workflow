@@ -9,6 +9,8 @@ env:
   INSTANCE_ID: ""
   S3_BUCKET_NAME: "test-j3"  # Replace with your S3 bucket name
   PYTHON_VERSION: "3.8"  # Parameterize your Python version
+  GITHUB_RUN_ID: ${{ github.run_id }}
+  TABLE_NAME: auto-test
 
 permissions:
   id-token: write
@@ -37,24 +39,33 @@ jobs:
         role-to-assume: ${{ env.DEV_ROLE_ARN }}
         aws-region: ${{ env.REGION }}
 
+    - name: insert github id request
+      run: |
+        echo "Inserting Github Event ID: $GITHUB_RUN_ID"
+        python scripts/db-update.py $GITHUB_RUN_ID
 
-    # - name: Run PuTTY Validation Script
-    #   run: |
-    #     report_path=$(python ./putty-validation.py "3.80.247.247")
-    #     ls -la ./common
-    #     cat ./common/aws_tags.json
-      #  echo "PUTTY_REPORT_PATH=$report_path" >> $GITHUB_ENV  # Store report path
-      continue-on-error: true
 
     - name: s3 upload
       run: |
-        python reports-s3.py
+        python reports-s31.py
+
+    - name: insert failed status
+      if: failure()
+      run: |
+        echo "Inserting Failed Status: $GITHUB_RUN_ID"
+        python scripts/db-update.py $GITHUB_RUN_ID
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v3
       with:
         name: my-artifact
-        path: reports
+        include-hidden-files: true
+        if-no-files-found: warn
+        path: |
+         ./reports/report.html
+         ./reports/report1.html
+        
+
 
     # - name: Gather Instance Details
     #   run: |

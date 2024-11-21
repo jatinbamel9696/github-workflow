@@ -56,16 +56,16 @@ jobs:
     #     python scripts/db-failed.py $GITHUB_RUN_ID
 
 
-    - name: Create Defect
-      if: failure()
+    - name: Log failures to a file
+      if: failure()  # Only run this step if any previous step failed
       run: |
-        # Extract failed step details
-        failed_step=$(cat $GITHUB_WORKSPACE/reports/output.log | grep 'FAIL' | head -1 | awk '{print $2}')
-        log_file_path="$GITHUB_WORKSPACE/reports/output.log"
+        echo "$(date): $(echo ${{ github.event_name }}) - Step failed at $(echo ${{ github.job }})" >> $GITHUB_WORKSPACE/reports/failure_log.txt
 
-        # Display the failed step and log file content (optional)
-        echo "Failed Step: $failed_step"
-        echo "Log File Path: $log_file_path"
+    - name: Check and display failure log
+      if: failure()  # Only run if previous steps failed
+      run: |
+        echo "Failure log contents:"
+        cat $GITHUB_WORKSPACE/reports/failure_log.txt
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v3

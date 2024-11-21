@@ -2,6 +2,15 @@ name: EC2 Instance Validation
 
 on:
   workflow_dispatch:
+    inputs:
+      test-case-command:
+        description: 'Command to trigger the Test-Case'
+        required: true
+        type: string
+      email-id:
+        description: 'Additional Email ID to receive the mail notification'
+        required: false
+        type: string
 
 env:
   REGION: "us-east-1"  
@@ -22,6 +31,19 @@ jobs:
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v3
+
+    - name: Echo Inputs
+      run: |
+        echo "Test Case Command: ${{ github.event.inputs['test-case-command'] }}"
+        echo "Email ID: ${{ github.event.inputs['email-id'] }}"
+    - name: Combine Emails for Testing
+      run: |
+        additional_email="${{ github.event.inputs['email-id'] }}"
+        combined_emails="${{ env.TO_EMAIL }}${additional_email:+,$additional_email}"
+        echo "Default Email: ${{ env.TO_EMAIL }}"
+        echo "Additional Email: $additional_email"
+        echo "Combined Emails: $combined_emails"
+
 
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -47,27 +69,13 @@ jobs:
 
     - name: s3 upload
       run: |
-        python reports-s31.py
+        python reports-s3.py
 
     # - name: insert failed status
     #   if: failure()
     #   run: |
     #     echo "Inserting Failed Status: $GITHUB_RUN_ID"
     #     python scripts/db-failed.py $GITHUB_RUN_ID
-
-
-    - name: Log failures to a file
-      if: failure()  # Only run if any previous step failed
-      run: |
-        echo "Failure detected at $(date)" >> $GITHUB_WORKSPACE/reports/failure_log.txt
-        echo "Failed Step: ${{ github.job }} - $(steps.step_name.outcome)" >> $GITHUB_WORKSPACE/reports/failure_log.txt
-        echo "Error Message: $(steps.step_name.outcome)" >> $GITHUB_WORKSPACE/reports/failure_log.txt
-
-    - name: Check and display failure log
-      if: failure()  # Only run if previous steps failed
-      run: |
-        echo "Failure log contents:"
-        cat $GITHUB_WORKSPACE/reports/failure_log.txt
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v3

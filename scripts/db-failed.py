@@ -24,7 +24,8 @@ def update_status_to_failed(request_id):
     update_expression = "SET #status = :status, #update_timestamp = :update_timestamp"
     expression_attribute_names = {
         "#status": "Status",
-        "#update_timestamp": "update_timestamp"
+        "#update_timestamp": "update_timestamp",
+        "#request_id": "Request-Id"  # Escape 'Request-Id'
     }
     expression_attribute_values = {
         ":status": "Failed",  # Set status to 'Failed'
@@ -34,11 +35,11 @@ def update_status_to_failed(request_id):
     try:
         # Perform the update
         response = table.update_item(
-            Key={'Request-Id': request_id},
+            Key={"#request_id": request_id},  # Use escaped key name
             UpdateExpression=update_expression,
             ExpressionAttributeNames=expression_attribute_names,
             ExpressionAttributeValues=expression_attribute_values,
-            ConditionExpression="attribute_exists(Request-Id)",  # Ensure the record exists
+            ConditionExpression="attribute_exists(#request_id)",  # Use escaped attribute name
             ReturnValues="UPDATED_NEW"
         )
         logging.info(f"Successfully updated Request ID {request_id} to 'Failed'. Updated attributes: {response['Attributes']}")

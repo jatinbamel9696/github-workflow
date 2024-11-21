@@ -56,7 +56,8 @@ jobs:
     #     python scripts/db-failed.py $GITHUB_RUN_ID
 
 
-    - name: Create Jira Defect
+    - name: Create Defect
+      if: failure()
       run: |
         # Extract failed step details
         failed_step=$(cat $GITHUB_WORKSPACE/reports/output.log | grep 'FAIL' | head -1 | awk '{print $2}')

@@ -57,7 +57,7 @@ if __name__ == "__main__":
 
     # Define the criteria for files to upload
     INCLUDE_EXTENSIONS = [".log", ".html"]  # Upload only .txt and .json files (update as needed)
-    INCLUDE_FILES = None  ['aw.json']# Example: ['specific-report.txt', 'summary.json'], or set to None to ignore
+    INCLUDE_FILES = ['aws.json']# Example: ['specific-report.txt', 'summary.json'], or set to None to ignore
 
     if not BUCKET_NAME or not LOCAL_REPORT_PATH or not GITHUB_RUN_ID:
         logger.error("Error: Ensure S3_BUCKET_NAME, LOCAL_REPORT_PATH, and GITHUB_RUN_ID are set as environment variables.")

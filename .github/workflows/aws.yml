@@ -21,6 +21,7 @@ env:
   GITHUB_RUN_ID: ${{ github.run_id }}
   TABLE_NAME: auto-test
   TO_EMAIL: "abc@gmail.com"
+  LOCAL_REPORT_PATH: reports
 
 permissions:
   id-token: write
@@ -33,17 +34,17 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v3
 
-    - name: Echo Inputs
-      run: |
-        echo "Test Case Command: ${{ github.event.inputs['test-case-command'] }}"
-        echo "Email ID: ${{ github.event.inputs['email-id'] }}"
-    - name: Combine Emails for Testing
-      run: |
-        additional_email="${{ github.event.inputs['email-id'] }}"
-        combined_emails="${{ env.TO_EMAIL }}${additional_email:+,$additional_email}"
-        echo "Default Email: ${{ env.TO_EMAIL }}"
-        echo "Additional Email: $additional_email"
-        echo "Combined Emails: $combined_emails"
+    # - name: Echo Inputs
+    #   run: |
+    #     echo "Test Case Command: ${{ github.event.inputs['test-case-command'] }}"
+    #     echo "Email ID: ${{ github.event.inputs['email-id'] }}"
+    # - name: Combine Emails for Testing
+    #   run: |
+    #     additional_email="${{ github.event.inputs['email-id'] }}"
+    #     combined_emails="${{ env.TO_EMAIL }}${additional_email:+,$additional_email}"
+    #     echo "Default Email: ${{ env.TO_EMAIL }}"
+    #     echo "Additional Email: $additional_email"
+    #     echo "Combined Emails: $combined_emails"
 
 
     - name: Set up Python
@@ -70,7 +71,7 @@ jobs:
 
     - name: s3 upload
       run: |
-        python reports-s3.py
+        python upload_s3.py
 
     # - name: insert failed status
     #   if: failure()

@@ -5,7 +5,7 @@ from datetime import datetime
 from botocore.exceptions import BotoCoreError, ClientError
 
 # Set up logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger()
 
 def upload_to_s3(bucket_name, local_report_path, github_run_id, include_extensions=None, include_files=None):
@@ -28,10 +28,15 @@ def upload_to_s3(bucket_name, local_report_path, github_run_id, include_extensio
         current_date = datetime.utcnow()
         s3_prefix = f"Reports/{current_date.year}/{current_date.month}/{current_date.day}/{github_run_id}/"
 
+        # Ensure the local directory exists
+        if not os.path.exists(local_report_path):
+            logger.error(f"Local path '{local_report_path}' does not exist.")
+            return
+
         # Upload specific files from the local reports directory to S3
         for root, _, files in os.walk(local_report_path):
             for file in files:
-                # Check if the file should be uploaded
+                # Check if the file matches the criteria for upload
                 if include_extensions and not file.endswith(tuple(include_extensions)):
                     continue
                 if include_files and file not in include_files:
@@ -40,14 +45,16 @@ def upload_to_s3(bucket_name, local_report_path, github_run_id, include_extensio
                 local_file_path = os.path.join(root, file)
                 s3_key = s3_prefix + file
 
-                # Upload the file
-                s3_client.upload_file(local_file_path, bucket_name, s3_key)
-                logger.info(f"Uploaded {local_file_path} to s3://{bucket_name}/{s3_key}")
+                try:
+                    # Upload the file
+                    s3_client.upload_file(local_file_path, bucket_name, s3_key)
+                    logger.info(f"Uploaded {local_file_path} to s3://{bucket_name}/{s3_key}")
+                except (BotoCoreError, ClientError) as upload_error:
+                    logger.error(f"Failed to upload {file}: {upload_error}")
 
-    except (BotoCoreError, ClientError) as e:
-        logger.error(f"An error occurred while uploading to S3: {e}")
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
+
 
 if __name__ == "__main__":
     # Get inputs from environment variables
@@ -56,10 +63,15 @@ if __name__ == "__main__":
     GITHUB_RUN_ID = os.getenv("GITHUB_RUN_ID")         # GitHub Run ID passed as an environment variable
 
     # Define the criteria for files to upload
-    INCLUDE_EXTENSIONS = [".log", ".html"]  # Upload only .txt and .json files (update as needed)
-    INCLUDE_FILES = ['aws.json']# Example: ['specific-report.txt', 'summary.json'], or set to None to ignore
+    INCLUDE_EXTENSIONS = [".log", ".html"]  # Upload only .log and .html files
+    INCLUDE_FILES = ['aws.json']  # Example: ['specific-report.txt', 'summary.json'], or set to None to ignore
 
-    if not BUCKET_NAME or not LOCAL_REPORT_PATH or not GITHUB_RUN_ID:
-        logger.error("Error: Ensure S3_BUCKET_NAME, LOCAL_REPORT_PATH, and GITHUB_RUN_ID are set as environment variables.")
+    # Validate mandatory inputs
+    if not BUCKET_NAME:
+        logger.error("S3_BUCKET_NAME is required but not set.")
+    elif not LOCAL_REPORT_PATH:
+        logger.error("LOCAL_REPORT_PATH is required but not set.")
+    elif not GITHUB_RUN_ID:
+        logger.error("GITHUB_RUN_ID is required but not set.")
     else:
         upload_to_s3(BUCKET_NAME, LOCAL_REPORT_PATH, GITHUB_RUN_ID, INCLUDE_EXTENSIONS, INCLUDE_FILES)

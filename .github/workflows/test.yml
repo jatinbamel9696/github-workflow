@@ -92,6 +92,7 @@ jobs:
 
     - name: Set Up Python
       uses: actions/setup-python@v4
+      if: ${{ success() }}
       with:
         python-version: ${{ env.PYTHON_VERSION }}
 
@@ -104,6 +105,7 @@ jobs:
         fi
 
     - name: Execute Test Case
+      if: always()
       run: |
         echo "Running test case command: ${{ env.TEST_CASE_COMMAND }}"
         # ${{ env.TEST_CASE_COMMAND }}

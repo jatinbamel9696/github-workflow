@@ -36,19 +36,22 @@ jobs:
       id: parse_input
       run: |
         echo "Parsing Input Parameters..."
+        
         INPUT_DICT='${{ github.event.inputs.dict_param }}'
         email_id="${{ github.event.inputs.email_id }}"
+        
         # Parse JSON and extract values
         env=$(echo "$INPUT_DICT" | jq -r '.env')
         test_case_method=$(echo "$INPUT_DICT" | jq -r '.test_case_method')
         dynamic_variable_path=$(echo "$INPUT_DICT" | jq -r '.dynamic_variable_path // empty')
+    
         # Determine default dynamic variable path if not provided
         if [[ -z "$dynamic_variable_path" ]]; then
           declare -A path_map=(
             ["ec2-al2"]="catalog-ui/tests/aws_Linux.robot"
             ["ec2-win"]="catalog-ui/tests/aws_Windows.robot"
-            ["api-api1"]="catalog-ui/tests/api-api1.json"
-            ["api-api2"]="catalog-ui/tests/api-api2.json"
+            ["api-api1"]="catalog-ui/tests/api-api1.py"
+            ["api-api2"]="catalog-ui/tests/api-api2.py"
           )
           dynamic_variable_path=${path_map[$test_case_method]:-""}
           if [[ -z "$dynamic_variable_path" ]]; then
@@ -56,19 +59,27 @@ jobs:
             exit 1
           fi
         fi
+    
         # Validate environment
         if [[ ! "$env" =~ ^(development|test|production)$ ]]; then
           echo "Error: Invalid environment. Must be development, test, or production."
           exit 1
         fi
-        # Construct the test case command
-        test_case_command="python -m robot --outputdir Reports --listener allure_robotframework:allure-results $dynamic_variable_path"
+    
+        # Construct the test case command with special cases for api-api1 and api-api2
+        if [[ "$test_case_method" == "ec2-al2" || "$test_case_method" == "ec2-win" ]]; then
+          test_case_command="python -m robot --outputdir Reports --listener allure_robotframework:allure-results --variable file:$dynamic_variable_path"
+        else
+          test_case_command="python $dynamic_variable_path"
+        fi
+    
         # Export environment variables
         echo "EMAIL_ID=$email_id" >> $GITHUB_ENV
         echo "TEST_CASE_METHOD=$test_case_method" >> $GITHUB_ENV
         echo "DYNAMIC_VARIABLE_PATH=$dynamic_variable_path" >> $GITHUB_ENV
         echo "TEST_CASE_COMMAND=$test_case_command" >> $GITHUB_ENV
-        
+    
+
     - name: Set Up Python
       uses: actions/setup-python@v4
       if: ${{ success() }}

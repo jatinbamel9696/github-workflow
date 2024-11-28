@@ -68,7 +68,7 @@ jobs:
     
         # Construct the test case command with special cases for api-api1 and api-api2
         if [[ "$test_case_method" == "ec2-al2" || "$test_case_method" == "ec2-win" ]]; then
-          test_case_command="python -m robot --outputdir Reports --listener allure_robotframework:allure-results --variable file:$dynamic_variable_path"
+          test_case_command="python -m robot --outputdir Reports --listener allure_robotframework:allure-results $dynamic_variable_path"
         else
           test_case_command="python $dynamic_variable_path"
         fi

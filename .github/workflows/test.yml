@@ -53,10 +53,10 @@ jobs:
         # Determine dynamic variable path if not explicitly provided
         case "$test_case_method" in
           ec2-al2)
-            dynamic_variable_path="./catalog-ui/tests/aws-ec2-al2.json"
+            dynamic_variable_path="./catalog-ui/tests/aws_Linux.robot"
             ;;
           ec2-win)
-            dynamic_variable_path="./catalog-ui/tests/aws-ec2-win.json"
+            dynamic_variable_path="./catalog-ui/tests/aws_Windows.robot"
             ;;
           api-api1)
             dynamic_variable_path="./catalog-ui/tests/api-api1.json"

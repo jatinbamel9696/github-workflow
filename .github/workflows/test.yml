@@ -1,4 +1,4 @@
-name: GoCloud Test Workflow
+name: Test Workflow
 
 on:
   workflow_dispatch:
@@ -24,8 +24,8 @@ env:
   GITHUB_JOB: ${{ github.job }}
 
 jobs:
-  Order-Instance:
-    runs-on: self-hosted
+  Instance:
+    runs-on: ubuntu-latest
     environment: ${{ fromJson(github.event.inputs.dict_param).environment }}
 
     steps:

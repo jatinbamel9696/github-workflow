@@ -41,30 +41,32 @@ jobs:
         # Parse JSON with jq
         env=$(echo "$INPUT_DICT" | jq -r '.env')
         test_case_method=$(echo "$INPUT_DICT" | jq -r '.test_case_method')
-        dynamic_variable_path=$(echo "$INPUT_DICT" | jq -r '.dynamic_variable_path // ""')
+        dynamic_variable_path=$(echo "$INPUT_DICT" | jq -r '.dynamic_variable_path')
 
         # Get email_id directly from input
         email_id="${{ github.event.inputs.email_id }}"
 
         # Determine dynamic variable path if not explicitly provided
-        case "$test_case_method" in
-          ec2-al2)
-            dynamic_variable_path="catalog-ui/tests/aws_Linux.robot"
-            ;;
-          ec2-win)
-            dynamic_variable_path="catalog-ui/tests/aws_Windows.robot"
-            ;;
-          api-api1)
-            dynamic_variable_path="catalog-ui/tests/api-api1.json"
-            ;;
-          api-api2)
-            dynamic_variable_path="catalog-ui/tests/api-api2.json"
-            ;;
-          *)
-            echo "Error: Unsupported test case method $test_case_method"
-            exit 1
-            ;;
-        esac
+        if [[ -z "$dynamic_variable_path" ]]; then
+          case "$test_case_method" in
+            ec2-al2)
+              dynamic_variable_path="catalog-ui/tests/aws_Linux.robot"
+              ;;
+            ec2-win)
+              dynamic_variable_path="catalog-ui/tests/aws_Windows.robot"
+              ;;
+            api-api1)
+              dynamic_variable_path="catalog-ui/tests/api-api1.json"
+              ;;
+            api-api2)
+              dynamic_variable_path="catalog-ui/tests/api-api2.json"
+              ;;
+            *)
+              echo "Error: Unsupported test case method $test_case_method"
+              exit 1
+              ;;
+          esac
+        fi
 
         # Construct the test case command
         test_case_command="python -m robot --outputdir Reports --listener allure_robotframework:allure-results $dynamic_variable_path"
@@ -101,7 +103,7 @@ jobs:
           pip install -r api-requirements.txt
         fi
 
-    - name: Order Catalog
+    - name: Execute Test Case
       run: |
         echo "Running test case command: ${{ env.TEST_CASE_COMMAND }}"
-        # ${{ env.TEST_CASE_COMMAND }}
+        ${{ env.TEST_CASE_COMMAND }}

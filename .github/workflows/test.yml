@@ -99,3 +99,4 @@ jobs:
       run: |
         echo "Running test case command: ${{ env.TEST_CASE_COMMAND }}"
         # ${{ env.TEST_CASE_COMMAND }}
+        echo "EMAIL_ID: ${{ vars.EMAIL_ID }}"

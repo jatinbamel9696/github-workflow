@@ -6,9 +6,9 @@ on:
       dict_param:
         description: 'JSON dictionary parameter'
         required: true
-        default: '{"environment": "development", "test_case_method": "ec2-al2", "email_id": "", "dynamic_variable_path": "" }' # email_id is optional
+        default: '{"env": "development", "test_case_method": "ec2-al2", "dynamic_variable_path": "" }'
       email_id:
-        description: 'Email ID for notifications (optional)'
+        description: 'Email ID for notifications'
         required: false
         type: string
 
@@ -26,7 +26,7 @@ env:
 jobs:
   Instance:
     runs-on: ubuntu-latest
-    environment: ${{ fromJson(github.event.inputs.dict_param).environment }}
+    environment: ${{ fromJson(github.event.inputs.dict_param).env }}
 
     steps:
     - name: Checkout code
@@ -39,30 +39,26 @@ jobs:
         INPUT_DICT='${{ github.event.inputs.dict_param }}'
 
         # Parse JSON with jq
-        environment=$(echo "$INPUT_DICT" | jq -r '.environment')
+        env=$(echo "$INPUT_DICT" | jq -r '.env')
         test_case_method=$(echo "$INPUT_DICT" | jq -r '.test_case_method')
-        email_id_param=$(echo "$INPUT_DICT" | jq -r '.email_id // ""')
         dynamic_variable_path=$(echo "$INPUT_DICT" | jq -r '.dynamic_variable_path // ""')
 
-        # Fallback to 'workflow_dispatch' email input
+        # Get email_id directly from input
         email_id="${{ github.event.inputs.email_id }}"
-        if [[ -z "$email_id" ]]; then
-          email_id="$email_id_param"
-        fi
 
         # Determine dynamic variable path if not explicitly provided
         case "$test_case_method" in
           ec2-al2)
-            dynamic_variable_path="./catalog-ui/tests/aws_Linux.robot"
+            dynamic_variable_path="catalog-ui/tests/aws_Linux.robot"
             ;;
           ec2-win)
-            dynamic_variable_path="./catalog-ui/tests/aws_Windows.robot"
+            dynamic_variable_path="catalog-ui/tests/aws_Windows.robot"
             ;;
           api-api1)
-            dynamic_variable_path="./catalog-ui/tests/api-api1.json"
+            dynamic_variable_path="catalog-ui/tests/api-api1.json"
             ;;
           api-api2)
-            dynamic_variable_path="./catalog-ui/tests/api-api2.json"
+            dynamic_variable_path="catalog-ui/tests/api-api2.json"
             ;;
           *)
             echo "Error: Unsupported test case method $test_case_method"
@@ -70,14 +66,18 @@ jobs:
             ;;
         esac
 
-        echo "Environment: $environment"
+        # Construct the test case command
+        test_case_command="python -m robot --outputdir Reports --listener allure_robotframework:allure-results $dynamic_variable_path"
+
+        echo "Environment: $env"
         echo "Test Case Method: $test_case_method"
         echo "Email ID: $email_id"
         echo "Dynamic Variable Path: $dynamic_variable_path"
+        echo "Test Case Command: $test_case_command"
 
         # Validate environment
         valid_envs=("development" "test" "production")
-        if [[ ! " ${valid_envs[@]} " =~ " ${environment} " ]]; then
+        if [[ ! " ${valid_envs[@]} " =~ " ${env} " ]]; then
           echo "Error: Invalid environment. Must be development, test, or production."
           exit 1
         fi
@@ -86,13 +86,14 @@ jobs:
         echo "EMAIL_ID=$email_id" >> $GITHUB_ENV
         echo "TEST_CASE_METHOD=$test_case_method" >> $GITHUB_ENV
         echo "DYNAMIC_VARIABLE_PATH=$dynamic_variable_path" >> $GITHUB_ENV
+        echo "TEST_CASE_COMMAND=$test_case_command" >> $GITHUB_ENV
 
     - name: Set Up Python
       uses: actions/setup-python@v4
       with:
         python-version: ${{ env.PYTHON_VERSION }}
 
-    - name: Install Dependencies Based on Test Case Method
+    - name: Install Dependencies
       run: |
         if [[ "$TEST_CASE_METHOD" == "ec2-al2" || "$TEST_CASE_METHOD" == "ec2-win" ]]; then
           pip install -r ec2-requirements.txt
@@ -100,23 +101,7 @@ jobs:
           pip install -r api-requirements.txt
         fi
 
-    - name: Echo Test Case Command
+    - name: Order Catalog
       run: |
-        echo "Determining the test case command for $TEST_CASE_METHOD"
-        case "$TEST_CASE_METHOD" in
-          ec2-al2)
-            COMMAND="python -m robot --outputdir Reports --listener allure_robotframework:allure-results $DYNAMIC_VARIABLE_PATH"
-            ;;
-          ec2-win)
-            COMMAND="python -m robot --outputdir Reports --listener allure_robotframework:allure-results $DYNAMIC_VARIABLE_PATH"
-            ;;
-          api-*)
-            COMMAND="python -m robot --outputdir Reports --listener allure_robotframework:allure-results $DYNAMIC_VARIABLE_PATH"
-            ;;
-          *)
-            echo "Error: Unsupported test case method."
-            exit 1
-            ;;
-        esac
-        echo "Command to execute: $COMMAND"
-    
+        echo "Running test case command: ${{ env.TEST_CASE_COMMAND }}"
+        ${{ env.TEST_CASE_COMMAND }}

@@ -183,8 +183,8 @@ jobs:
       run: |
         test_case_method="${{ env.TEST_CASE_METHOD }}"
     
-        # Set requirements file based on test case method
-        requirements_file=$(jq -r ".${test_case_method//_/\.}.requirements_file // empty" .github/workflows/config.json)
+        # Use jq to dynamically select the requirements file, properly escaping the method name
+        requirements_file=$(jq -r ".\"${test_case_method//_/\\.}\".requirements_file // empty" .github/workflows/config.json)
     
         if [ -z "$requirements_file" ]; then
           echo "Error: No requirements file found for $test_case_method"
@@ -193,6 +193,7 @@ jobs:
     
         echo "Installing dependencies from $requirements_file"
         pip install -r "$requirements_file"
+    
     
     
     

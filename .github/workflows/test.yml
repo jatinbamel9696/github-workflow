@@ -1,4 +1,4 @@
-name: Test Workflow   # This is a descriptive workflow name
+name: Test Workflow
 
 on:
   workflow_dispatch:
@@ -13,16 +13,14 @@ on:
         default: ""
 
 env:
-
   GITHUB_RUN_ID: ${{ github.run_id }}
   GITHUB_REPOSITORY: ${{ github.repository }}
-  GITHUB_WORKFLOW: ${{ github.workflow }}    
+  GITHUB_WORKFLOW: ${{ github.workflow }}
   GITHUB_JOB: ${{ github.job }}
-
 
 permissions:
   id-token: write
-  contents: read  
+  contents: read
 
 jobs:
   test-parse-input:
@@ -30,241 +28,64 @@ jobs:
     environment: ${{ fromJson(github.event.inputs.dict_param).env }}
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    # - name: Parse Input Parameters and Set Environment Variables
-    #   id: parse_input
-    #   run: |
-    #     echo "Input Parameters: ${{ github.event.inputs.dict_param }}"
-    #     echo "environment: ${{ fromJson(github.event.inputs.dict_param).env }}"
-    #     echo "Parsing Input Parameters"
-        
-    #     INPUT_DICT='${{ github.event.inputs.dict_param }}'
-    #     email_id="${{ github.event.inputs.email_id }}"
-    #     config_file=".github/workflows/config.json" 
-    #     echo "CONFIG_FILE=$config_file" >> $GITHUB_ENV
-    
-    #     # Parse JSON and extract values from INPUT_DICT
-    #     env=$(echo "$INPUT_DICT" | jq -r '.env')
-    #     test_case_method=$(echo "$INPUT_DICT" | jq -r '.test_case_method')
-    
-    #     # Validate environment using the config.json file
-    #     allowed_envs=$(jq -r '.allowed_environment[]' "$config_file") # Corrected key name: 'allowed_environment'
-    
-    #     # Convert allowed_envs into an array for comparison
-    #     if ! echo "${allowed_envs[@]}" | grep -qw "$env"; then
-    #       echo "Error: Invalid environment '$env'. Must be one of: $allowed_envs"
-    #       exit 1
-    #     fi
-    
-    #     # Determine command prefix, suffix, and dynamic variable path
-    #     case "$test_case_method" in
-    #       "ec2_al2")
-    #         command_prefix=$(jq -r '.ec2_catalog.command_prefix' "$config_file")
-    #         command_suffix=$(jq -r '.ec2_catalog.ec2_al2.command_suffix' "$config_file")
-    #         dynamic_variable_path=$(jq -r '.ec2_catalog.ec2_al2.dynamic_variable_path' "$config_file")
-    #         ;;
-    #       "ec2_win")
-    #         command_prefix=$(jq -r '.ec2_catalog.command_prefix' "$config_file")
-    #         command_suffix=$(jq -r '.ec2_catalog.ec2_win.command_suffix' "$config_file")
-    #         dynamic_variable_path=$(jq -r '.ec2_catalog.ec2_win.dynamic_variable_path' "$config_file")
-    #         ;;
-    #       "api_name_1")
-    #         command_prefix=$(jq -r '.api_test.command_prefix' "$config_file")
-    #         command_suffix=$(jq -r '.api_test.api_name_1.command_suffix' "$config_file")
-    #         dynamic_variable_path=$(jq -r '.api_test.api_name_1.dynamic_variable_path' "$config_file")
-    #         ;;
-    #       "api_name_2")
-    #         command_prefix=$(jq -r '.api_test.command_prefix' "$config_file")
-    #         command_suffix=$(jq -r '.api_test.api_name_2.command_suffix' "$config_file")
-    #         dynamic_variable_path=$(jq -r '.api_test.api_name_2.dynamic_variable_path' "$config_file")
-    #         ;;
-    #       *)
-    #         echo "Error: Unsupported test case method $test_case_method"
-    #         exit 1
-    #         ;;
-    #     esac
-    
-    #     # Construct the test case command
-    #     test_case_command="$command_prefix $command_suffix"
-    
-    #     # Export environment variables
-    #     echo "EMAIL_ID=$email_id" >> $GITHUB_ENV
-    #     echo "TEST_CASE_METHOD=$test_case_method" >> $GITHUB_ENV
-    #     echo "COMMAND_PREFIX=$command_prefix" >> $GITHUB_ENV
-    #     echo "COMMAND_SUFFIX=$command_suffix" >> $GITHUB_ENV
-    #     echo "DYNAMIC_VARIABLE_PATH=$dynamic_variable_path" >> $GITHUB_ENV
-    #     echo "TEST_CASE_COMMAND=$test_case_command" >> $GITHUB_ENV
+      - name: Parse Input Parameters and Set Environment Variables
+        id: parse_input
+        run: |
+          INPUT_DICT='${{ github.event.inputs.dict_param }}'
+          config_file=".github/workflows/config.json"
 
-    # - name: Parse Input Parameters and Set Environment Variables
-    #   id: parse_input
-    #   run: |
-    #     echo "Input Parameters: ${{ github.event.inputs.dict_param }}"
-    #     echo "environment: ${{ fromJson(github.event.inputs.dict_param).env }}"
-    #     echo "Parsing Input Parameters"
-        
-    #     INPUT_DICT='${{ github.event.inputs.dict_param }}'
-    #     email_id="${{ github.event.inputs.email_id }}"
-    #     config_file=".github/workflows/config.json" 
-    #     echo "CONFIG_FILE=$config_file" >> $GITHUB_ENV
-    
-    #     # Parse JSON and extract values from INPUT_DICT
-    #     env=$(echo "$INPUT_DICT" | jq -r '.env')
-    #     test_case_method=$(echo "$INPUT_DICT" | jq -r '.test_case_method')
-    
-    #     # Validate environment using the config.json file
-    #     allowed_envs=$(jq -r '.allowed_environment[]' "$config_file") # Corrected key name: 'allowed_environment'
-    
-    #     # Convert allowed_envs into an array for comparison
-    #     if ! echo "${allowed_envs[@]}" | grep -qw "$env"; then
-    #       echo "Error: Invalid environment '$env'. Must be one of: $allowed_envs"
-    #       exit 1
-    #     fi
-    
-    #     # Determine command prefix, suffix, and dynamic variable path
-    #     case "$test_case_method" in
-    #       "ec2_al2")
-    #         command_prefix=$(jq -r '.ec2_catalog.command_prefix' "$config_file")
-    #         command_suffix=$(jq -r '.ec2_catalog.ec2_al2.command_suffix' "$config_file")
-    #         dynamic_variable_path=$(jq -r '.ec2_catalog.ec2_al2.dynamic_variable_path' "$config_file")
-    #         ;;
-    #       "ec2_win")
-    #         command_prefix=$(jq -r '.ec2_catalog.command_prefix' "$config_file")
-    #         command_suffix=$(jq -r '.ec2_catalog.ec2_win.command_suffix' "$config_file")
-    #         dynamic_variable_path=$(jq -r '.ec2_catalog.ec2_win.dynamic_variable_path' "$config_file")
-    #         ;;
-    #       "api_name_1")
-    #         command_prefix=$(jq -r '.api_test.command_prefix' "$config_file")
-    #         command_suffix=$(jq -r '.api_test.api_name_1.command_suffix' "$config_file")
-    #         dynamic_variable_path=$(jq -r '.api_test.api_name_1.dynamic_variable_path' "$config_file")
-    #         ;;
-    #       "api_name_2")
-    #         command_prefix=$(jq -r '.api_test.command_prefix' "$config_file")
-    #         command_suffix=$(jq -r '.api_test.api_name_2.command_suffix' "$config_file")
-    #         dynamic_variable_path=$(jq -r '.api_test.api_name_2.dynamic_variable_path' "$config_file")
-    #         ;;
-    #       *)
-    #         echo "Error: Unsupported test case method $test_case_method"
-    #         exit 1
-    #         ;;
-    #     esac
-    
-    #     # Construct the test case command
-    #     test_case_command="$command_prefix $command_suffix"
-    
-    #     # Export environment variables
-    #     echo "EMAIL_ID=$email_id" >> $GITHUB_ENV
-    #     echo "TEST_CASE_METHOD=$test_case_method" >> $GITHUB_ENV
-    #     echo "COMMAND_PREFIX=$command_prefix" >> $GITHUB_ENV
-    #     echo "COMMAND_SUFFIX=$command_suffix" >> $GITHUB_ENV
-    #     echo "DYNAMIC_VARIABLE_PATH=$dynamic_variable_path" >> $GITHUB_ENV
-    #     echo "TEST_CASE_COMMAND=$test_case_command" >> $GITHUB_ENV
-    
-    - name: Parse Input Parameters and Set Environment Variables
-      id: parse_input1
-      run: |
-        echo "Input Parameters: ${{ github.event.inputs.dict_param }}"
-        echo "environment: ${{ fromJson(github.event.inputs.dict_param).env }}"
-        echo "Parsing Input Parameters"
-        
-        INPUT_DICT='${{ github.event.inputs.dict_param }}'
-        email_id="${{ github.event.inputs.email_id }}"
-        config_file=".github/workflows/config.json"
-        echo "CONFIG_FILE=$config_file" >> $GITHUB_ENV
+          # Parse JSON input
+          env=$(echo "$INPUT_DICT" | jq -r '.env')
+          test_case_method=$(echo "$INPUT_DICT" | jq -r '.test_case_method')
+          email_id="${{ github.event.inputs.email_id }}"
 
-        # Parse JSON and extract values from INPUT_DICT
-        env=$(echo "$INPUT_DICT" | jq -r '.env')
-        test_case_method=$(echo "$INPUT_DICT" | jq -r '.test_case_method')
+          # Validate environment
+          allowed_envs=$(jq -r '.allowed_environment[]' "$config_file")
+          if ! echo "$allowed_envs" | grep -qw "$env"; then
+            echo "Error: Invalid environment '$env'. Allowed: $allowed_envs"
+            exit 1
+          fi
 
-        # Validate environment using the config.json file
-        allowed_envs=$(jq -r '.allowed_environment[]' "$config_file")
-        
-        # Convert allowed_envs into an array for comparison
-        if ! echo "${allowed_envs[@]}" | grep -qw "$env"; then
-          echo "Error: Invalid environment '$env'. Must be one of: $allowed_envs"
-          exit 1
-        fi
+          # Fetch dynamic values for test case method
+          if ! jq -e --arg method "$test_case_method" '.ec2_catalog[$method] // .api_test[$method]' "$config_file" > /dev/null; then
+            echo "Error: Unsupported test case method '$test_case_method'."
+            echo "Available methods: $(jq -r '.ec2_catalog.keys[] + .api_test.keys[]' "$config_file" | sort | uniq | paste -s -d, -)"
+            exit 1
+          fi
 
-        # Extract data dynamically from the config file
-        test_case_data=$(jq -r --arg method "$test_case_method" '
-          if .[$method] then 
-            .[$method] 
-          else 
-            .[$method | gsub("_"; ".")]
-          end' "$config_file")
+          command_prefix=$(jq -r --arg method "$test_case_method" '.ec2_catalog[$method].command_prefix // .api_test.command_prefix' "$config_file")
+          command_suffix=$(jq -r --arg method "$test_case_method" '.ec2_catalog[$method].command_suffix // .api_test[$method].command_suffix' "$config_file")
+          dynamic_variable_path=$(jq -r --arg method "$test_case_method" '.ec2_catalog[$method].dynamic_variable_path // .api_test[$method].dynamic_variable_path' "$config_file")
+          requirements_file=$(jq -r --arg method "$test_case_method" '.ec2_catalog.requirements_file // .api_test.requirements_file' "$config_file")
 
-        if [ "$test_case_data" == "null" ]; then
-          echo "Error: Unsupported test case method $test_case_method"
-          exit 1
-        fi
+          # Construct test command
+          test_case_command="$command_prefix $command_suffix"
+          if [[ -n "$dynamic_variable_path" ]]; then
+            test_case_command="$test_case_command --variablefile $dynamic_variable_path"
+          fi
 
-        command_prefix=$(echo "$test_case_data" | jq -r '.command_prefix // empty')
-        command_suffix=$(echo "$test_case_data" | jq -r '.command_suffix // empty')
-        dynamic_variable_path=$(echo "$test_case_data" | jq -r '.dynamic_variable_path // empty')
+          # Export environment variables
+          echo "EMAIL_ID=$email_id" >> $GITHUB_ENV
+          echo "COMMAND_PREFIX=$command_prefix" >> $GITHUB_ENV
+          echo "COMMAND_SUFFIX=$command_suffix" >> $GITHUB_ENV
+          echo "DYNAMIC_VARIABLE_PATH=$dynamic_variable_path" >> $GITHUB_ENV
+          echo "TEST_CASE_COMMAND=$test_case_command" >> $GITHUB_ENV
+          echo "REQUIREMENTS_FILE=$requirements_file" >> $GITHUB_ENV
 
-        # Construct the test case command
-        test_case_command="$command_prefix $command_suffix"
+      - name: Install Dependencies
+        run: |
+          requirements_file="${{ env.REQUIREMENTS_FILE }}"
+          if [[ -z "$requirements_file" ]]; then
+            echo "Error: Requirements file not found!"
+            exit 1
+          fi
+          pip install -r "$requirements_file"
 
-        # Export environment variables
-        echo "EMAIL_ID=$email_id" >> $GITHUB_ENV
-        echo "TEST_CASE_METHOD=$test_case_method" >> $GITHUB_ENV
-        echo "COMMAND_PREFIX=$command_prefix" >> $GITHUB_ENV
-        echo "COMMAND_SUFFIX=$command_suffix" >> $GITHUB_ENV
-        echo "DYNAMIC_VARIABLE_PATH=$dynamic_variable_path" >> $GITHUB_ENV
-        echo "TEST_CASE_COMMAND=$test_case_command" >> $GITHUB_ENV   
-
-    - name: Set up JDK
-      uses: actions/setup-java@v4
-      with:
-        java-version: 17
-        distribution: 'temurin'
-      
-    - name: Install Google Chrome
-      uses: browser-actions/setup-chrome@v1
-      with:
-        chrome-version: 129
-        install-chromedriver: true
-
-    - name: Set Up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ env.PYTHON_VERSION }}
-
-    - name: Install Dependencies based on Test Case Method
-      run: |
-        test_case_method="${{ env.TEST_CASE_METHOD }}"  # Fetch the method stored in GITHUB_ENV
-    
-        # Determine the requirements file based on the test case method
-        if [[ "$test_case_method" == ec2* ]]; then
-          # If the test case method is EC2 related, install EC2 dependencies
-          requirements_file=$(jq -r '.ec2_catalog.requirements_file' .github/workflows/config.json)
-        elif [[ "$test_case_method" == api* ]]; then
-          # If the test case method is API related, install API dependencies
-          requirements_file=$(jq -r '.api_test.requirements_file' .github/workflows/config.json)
-        else
-          echo "Error: Unsupported test case method '$test_case_method'"
-          exit 1
-        fi
-    
-        # Check if the requirements file is found
-        if [ -z "$requirements_file" ]; then
-          echo "Error: No requirements file found for test case method $test_case_method"
-          exit 1
-        fi
-    
-        # Install dependencies from the selected requirements file
-        echo "Installing dependencies from $requirements_file"
-        pip install -r "$requirements_file"
-
-        
-        
-
-    - name: Trigger Testing Framework
-      id: trigger_testing
-      if: steps.parse_input.outcome == 'success'
-      run: |
-        echo "Running testing workflow command"  
-        echo " test case command: ${{ env.TEST_CASE_COMMAND }}"
-        # ${{ env.TEST_CASE_COMMAND }}
-    
+      - name: Trigger Testing Framework
+        id: trigger_testing
+        run: |
+          echo "Running command: ${{ env.TEST_CASE_COMMAND }}"
+          eval "${{ env.TEST_CASE_COMMAND }}"

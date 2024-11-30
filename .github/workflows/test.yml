@@ -26,7 +26,7 @@ permissions:
 
 jobs:
   test-parse-input:
-    runs-on: ubuntu
+    runs-on: ubuntu-latest
     environment: ${{ fromJson(github.event.inputs.dict_param).env }}
 
     steps:

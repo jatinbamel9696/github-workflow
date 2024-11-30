@@ -43,21 +43,21 @@ jobs:
         INPUT_DICT='${{ github.event.inputs.dict_param }}'
         email_id="${{ github.event.inputs.email_id }}"
         config_file=".github/workflows/config.json" 
-
+    
         # Parse JSON and extract values from INPUT_DICT
         env=$(echo "$INPUT_DICT" | jq -r '.env')
         test_case_method=$(echo "$INPUT_DICT" | jq -r '.test_case_method')
-
+    
         # Validate environment using the config.json file
-        allowed_envs=$(jq -r '.allowed_environemnt[]' "$config_file")
+        allowed_envs=$(jq -r '.allowed_environment[]' "$config_file") # Corrected key name: 'allowed_environment'
         if [[ ! " $allowed_envs " =~ " $env " ]]; then
           echo "Error: Invalid environment. Must be one of: $allowed_envs"
           exit 1
         fi
-
+    
         # Determine command prefix, suffix, and dynamic variable path
         case "$test_case_method" in
-          "ec2_al2")
+          "ec2_al2") # Use "ec2_al2" as the input parameter
             command_prefix=$(jq -r '.ec2_catalog.command_prefix' "$config_file")
             command_suffix=$(jq -r '.ec2_catalog.ec2_al2.command_suffix' "$config_file")
             dynamic_variable_path=$(jq -r '.ec2_catalog.ec2_al2.dynamic_variable_path' "$config_file")
@@ -82,10 +82,10 @@ jobs:
             exit 1
             ;;
         esac
-
+    
         # Construct the test case command
         test_case_command="$command_prefix $command_suffix"
-
+    
         # Export environment variables
         echo "EMAIL_ID=$email_id" >> $GITHUB_ENV
         echo "TEST_CASE_METHOD=$test_case_method" >> $GITHUB_ENV
@@ -93,6 +93,7 @@ jobs:
         echo "COMMAND_SUFFIX=$command_suffix" >> $GITHUB_ENV
         echo "DYNAMIC_VARIABLE_PATH=$dynamic_variable_path" >> $GITHUB_ENV
         echo "TEST_CASE_COMMAND=$test_case_command" >> $GITHUB_ENV
+    
 
     - name: Set up JDK
       uses: actions/setup-java@v4

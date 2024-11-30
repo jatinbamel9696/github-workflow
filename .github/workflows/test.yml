@@ -116,7 +116,7 @@ jobs:
 
     - name: Install Dependencies
       run: |
-        requirements_file=$(jq -r ".${TEST_CASE_METHOD%%-*}_catalog.requirements_file" config.json)
+        requirements_file=$(jq -r ".${TEST_CASE_METHOD%%-*}_catalog.requirements_file" . ../config.json)
         echo "Using requirements file: $requirements_file"
         pip install -r "$requirements_file"
 

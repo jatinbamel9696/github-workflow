@@ -117,12 +117,18 @@ jobs:
 
     - name: Install Dependencies
       run: |
-        # Extract the requirements file and install dependencies
-        requirements_file=$(jq -r ".${TEST_CASE_METHOD%%-*}_catalog.requirements_file" ${{ vars.CONFIG_FILE }}) && \
-        [ -z "$requirements_file" ] && echo "Error: No requirements file found for $TEST_CASE_METHOD" && exit 1
+        # Set the requirements file based on TEST_CASE_METHOD
+        requirements_file=$(jq -r ".${TEST_CASE_METHOD%%_*}.requirements_file" ${{ env.CONFIG_FILE }})
+      
+        # Check if requirements file exists
+        if [ -z "$requirements_file" ]; then
+          echo "Error: No requirements file found for $TEST_CASE_METHOD"
+          exit 1
+        fi
       
         echo "Using requirements file: $requirements_file"
         pip install -r "$requirements_file"
+      
 
 
     - name: Trigger Testing Framework

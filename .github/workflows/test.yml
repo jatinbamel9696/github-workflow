@@ -70,12 +70,12 @@ jobs:
             command_suffix=$(jq -r '.ec2_catalog.ec2_win.command_suffix' "$config_file")
             dynamic_variable_path=$(jq -r '.ec2_catalog.ec2_win.dynamic_variable_path' "$config_file")
             ;;
-          "api_api1")
+          "api_name_1")
             command_prefix=$(jq -r '.api_test.command_prefix' "$config_file")
             command_suffix=$(jq -r '.api_test.api_name_1.command_suffix' "$config_file")
             dynamic_variable_path=$(jq -r '.api_test.api_name_1.dynamic_variable_path' "$config_file")
             ;;
-          "api_api2")
+          "api_name_2")
             command_prefix=$(jq -r '.api_test.command_prefix' "$config_file")
             command_suffix=$(jq -r '.api_test.api_name_2.command_suffix' "$config_file")
             dynamic_variable_path=$(jq -r '.api_test.api_name_2.dynamic_variable_path' "$config_file")

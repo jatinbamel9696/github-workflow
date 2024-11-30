@@ -1,0 +1,29 @@
+{
+    "allowed_environemnt": ["development", "test", "production"],
+    "ec2_catalog": {
+      "command_prefix": "python -m robot --outputdir Reports --listener allure_robotframework:allure-results",
+      "requirements_file": "ec2_requirements.txt",
+      "ec2_al2": {
+        "dynamic_variable_path": "./catalog-ui/tests/resources/aws_Linux.json",
+        "command_suffix": "catalog-ui/tests/aws_Linux.robot"
+      },
+      "ec2_win": {
+        "dynamic_variable_path": "./catalog-ui/tests/resources/aws_Windows.json",
+        "command_suffix": "catalog-ui/tests/aws_Windows.robot"
+      }
+    },
+    "api_test": {
+      "command_prefix": "python -m behave" ,
+      "requirements_file": "api_requirements.txt",
+      "api_name_1": {
+        "dynamic_variable_path": "",
+        "command_suffix": "./gocloudapi/tests/features/RestfulTest.feature"
+
+      },
+      "api_name_2": {
+        "dynamic_variable_path": "",
+        "command_suffix": "./gocloudapi/tests/features/RestfulTest.feature"
+      }
+    }
+  }
+  

@@ -50,14 +50,16 @@ jobs:
     
         # Validate environment using the config.json file
         allowed_envs=$(jq -r '.allowed_environment[]' "$config_file") # Corrected key name: 'allowed_environment'
-        if [[ ! " $allowed_envs " =~ " $env " ]]; then
-          echo "Error: Invalid environment. Must be one of: $allowed_envs"
+    
+        # Convert allowed_envs into an array for comparison
+        if ! echo "${allowed_envs[@]}" | grep -qw "$env"; then
+          echo "Error: Invalid environment '$env'. Must be one of: $allowed_envs"
           exit 1
         fi
     
         # Determine command prefix, suffix, and dynamic variable path
         case "$test_case_method" in
-          "ec2_al2") # Use "ec2_al2" as the input parameter
+          "ec2_al2")
             command_prefix=$(jq -r '.ec2_catalog.command_prefix' "$config_file")
             command_suffix=$(jq -r '.ec2_catalog.ec2_al2.command_suffix' "$config_file")
             dynamic_variable_path=$(jq -r '.ec2_catalog.ec2_al2.dynamic_variable_path' "$config_file")

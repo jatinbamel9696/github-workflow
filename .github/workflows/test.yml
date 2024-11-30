@@ -117,19 +117,17 @@ jobs:
 
     - name: Install Dependencies
       run: |
-        # Set the requirements file based on TEST_CASE_METHOD
-        requirements_file=$(jq -r ".${TEST_CASE_METHOD%%_*}.requirements_file" ${{ env.CONFIG_FILE }})
-      
-        # Check if requirements file exists
+        # Extract the requirements file based on TEST_CASE_METHOD under the ec2_catalog section
+        requirements_file=$(jq -r ".ec2_catalog.requirements_file" .github/workflows/config.json)
+    
+        # Check if the requirements file exists
         if [ -z "$requirements_file" ]; then
           echo "Error: No requirements file found for $TEST_CASE_METHOD"
           exit 1
         fi
-      
+    
         echo "Using requirements file: $requirements_file"
         pip install -r "$requirements_file"
-      
-
 
     - name: Trigger Testing Framework
       id: trigger_testing

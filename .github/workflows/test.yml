@@ -215,4 +215,10 @@ jobs:
         echo "Running testing workflow command"  
         echo " test case command: ${{ env.TEST_CASE_COMMAND }}"
         # ${{ env.TEST_CASE_COMMAND }}
+
+    - name: Build test report
+      uses: simple-elf/allure-report-action@v1.7
+      if: always()
+      with:
+        allure_results: Reports/allure-results
     

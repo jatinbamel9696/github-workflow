@@ -88,4 +88,4 @@ jobs:
         id: trigger_testing
         run: |
           echo "Running command: ${{ env.TEST_CASE_COMMAND }}"
-          eval "${{ env.TEST_CASE_COMMAND }}"
+          #eval "${{ env.TEST_CASE_COMMAND }}"

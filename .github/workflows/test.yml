@@ -43,6 +43,7 @@ jobs:
         INPUT_DICT='${{ github.event.inputs.dict_param }}'
         email_id="${{ github.event.inputs.email_id }}"
         config_file=".github/workflows/config.json" 
+        echo "CONFIG_FILE=$config_file" >> $GITHUB_ENV
     
         # Parse JSON and extract values from INPUT_DICT
         env=$(echo "$INPUT_DICT" | jq -r '.env')
@@ -116,7 +117,7 @@ jobs:
 
     - name: Install Dependencies
       run: |
-        requirements_file=$(jq -r ".${TEST_CASE_METHOD%%-*}_catalog.requirements_file" . ../config.json)
+        requirements_file=$(jq -r ".${TEST_CASE_METHOD%%-*}_catalog.requirements_file" ${{ vars.CONFIG_FILE }})
         echo "Using requirements file: $requirements_file"
         pip install -r "$requirements_file"
 

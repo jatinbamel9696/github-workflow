@@ -117,7 +117,10 @@ jobs:
 
     - name: Install Dependencies
       run: |
-        requirements_file=$(jq -r ".${TEST_CASE_METHOD%%-*}_catalog.requirements_file" ${{ vars.CONFIG_FILE }})
+        # Extract the requirements file and install dependencies
+        requirements_file=$(jq -r ".${TEST_CASE_METHOD%%-*}_catalog.requirements_file" ${{ vars.CONFIG_FILE }}) && \
+        [ -z "$requirements_file" ] && echo "Error: No requirements file found for $TEST_CASE_METHOD" && exit 1
+      
         echo "Using requirements file: $requirements_file"
         pip install -r "$requirements_file"
 

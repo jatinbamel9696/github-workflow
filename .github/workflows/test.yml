@@ -86,12 +86,11 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          requirements_file="${{ env.REQUIREMENTS_FILE }}"
-          if [[ -z "$requirements_file" ]]; then
-            echo "Error: Requirements file not found!"
-            exit 1
+          if [[ "$TEST_CASE_METHOD" == "ec2-al2" || "$TEST_CASE_METHOD" == "ec2-win" ]]; then
+            pip install -r ec2-requirements.txt
+          else
+            pip install -r api-requirements.txt
           fi
-          pip install -r "$requirements_file"
 
       - name: Trigger Testing Framework
         id: trigger_testing

@@ -144,10 +144,11 @@ jobs:
           echo "DEBUG: Command Suffix for $test_case_method: $command_suffix"
   
       - name: dependencies
+        id: test
         run: |
           # Install dependencies
           echo "Installing common dependencies"
-          pip install -r common_requirements.txt
+          pip install -r common_requirements1.txt
           echo "Dependencies: ${{ env.REQUIREMENTS_FILE }}"
           pip install -r ${{ env.REQUIREMENTS_FILE }}
 
@@ -161,6 +162,7 @@ jobs:
       #     fi
 
       - name: Trigger Testing Framework
+        if: steps.test.outcome == success()
         id: trigger_testing
         run: |
           echo "Running command: ${{ env.TEST_CASE_COMMAND }}"

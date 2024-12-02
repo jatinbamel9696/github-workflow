@@ -4,12 +4,10 @@
       "command_prefix": "python -m robot --outputdir Reports --listener allure_robotframework:allure-results",
       "requirements_file": "ec2_requirements.txt",
       "ec2_al2": {
-        "command_prefix": "python -m robot --outputdir Reports --listener allure_robotframework:allure-results",
         "dynamic_variable_path": "./catalog-ui/tests/resources/aws_Linux.json",
         "command_suffix": "catalog-ui/tests/aws_Linux.robot"
       },
       "ec2_win": {
-        "command_prefix": "python -m robot --outputdir Reports --listener allure_robotframework:allure-results",
         "dynamic_variable_path": "./catalog-ui/tests/resources/aws_Windows.json",
         "command_suffix": "catalog-ui/tests/aws_Windows.robot"
       }

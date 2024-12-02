@@ -145,6 +145,7 @@ jobs:
       - name: dependencies
         run: |
           # Install dependencies
+          echo "Dependencies: ${{ env.REQUIREMENTS_FILE }}"
           pip install -r ${{ env.REQUIREMENTS_FILE }}
 
 

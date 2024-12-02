@@ -52,14 +52,21 @@ jobs:
           # Fetch dynamic values for test case method
           if ! jq -e --arg method "$test_case_method" '.ec2_catalog[$method] // .api_test[$method]' "$config_file" > /dev/null; then
             echo "Error: Unsupported test case method '$test_case_method'."
-            echo "Available methods: $(jq -r '.ec2_catalog.keys[] + .api_test.keys[]' "$config_file" | sort | uniq | paste -s -d, -)"
+            echo "Available methods: $(jq -r '.ec2_catalog | keys_unsorted[], .api_test | keys_unsorted[]' "$config_file" | sort | uniq | paste -s -d, -)"
             exit 1
           fi
       
-          command_prefix=$(jq -r --arg method "$test_case_method" '.ec2_catalog.command_prefix // .api_test.command_prefix' "$config_file")
+          # Fetch specific values for the test case method
+          command_prefix=$(jq -r --arg method "$test_case_method" '.ec2_catalog[$method].command_prefix // .api_test[$method].command_prefix' "$config_file")
           command_suffix=$(jq -r --arg method "$test_case_method" '.ec2_catalog[$method].command_suffix // .api_test[$method].command_suffix' "$config_file")
           dynamic_variable_path=$(jq -r --arg method "$test_case_method" '.ec2_catalog[$method].dynamic_variable_path // .api_test[$method].dynamic_variable_path' "$config_file")
-          requirements_file=$(jq -r --arg method "$test_case_method" '.ec2_catalog.requirements_file // .api_test.requirements_file' "$config_file")
+          requirements_file=$(jq -r --arg method "$test_case_method" '.ec2_catalog[$method].requirements_file // .api_test[$method].requirements_file' "$config_file")
+      
+          # Validate fetched values
+          if [[ -z "$command_prefix" || -z "$command_suffix" ]]; then
+            echo "Error: Missing command_prefix or command_suffix for method '$test_case_method'."
+            exit 1
+          fi
       
           # Construct test command using only prefix and suffix
           test_case_command="$command_prefix $command_suffix"
@@ -71,6 +78,10 @@ jobs:
           echo "DYNAMIC_VARIABLE_PATH=$dynamic_variable_path" >> $GITHUB_ENV
           echo "TEST_CASE_COMMAND=$test_case_command" >> $GITHUB_ENV
           echo "REQUIREMENTS_FILE=$requirements_file" >> $GITHUB_ENV
+      
+          # Debug logs
+          echo "Constructed TEST_CASE_COMMAND: $test_case_command"
+      
       
 
       - name: Install Dependencies

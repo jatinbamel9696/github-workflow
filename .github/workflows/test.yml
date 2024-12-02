@@ -86,10 +86,10 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          if [[ "$TEST_CASE_METHOD" == "ec2-al2" || "$TEST_CASE_METHOD" == "ec2-win" ]]; then
-            pip install -r ec2-requirements.txt
+          if [[ "$TEST_CASE_METHOD" == "ec2_al2" || "$TEST_CASE_METHOD" == "ec2_win" ]]; then
+            pip install -r ec2_requirements.txt
           else
-            pip install -r api-requirements.txt
+            pip install -r api_requirements.txt
           fi
 
       - name: Trigger Testing Framework

@@ -116,6 +116,7 @@ jobs:
             command_suffix=$(jq -r --arg method "$test_case_method" '.api_test[$method].command_suffix' "$config_file")
             # Ensure to fetch the correct `command_prefix` for API
             command_prefix=$(jq -r '.api_test.command_prefix' "$config_file")
+            requirements_file=$(jq -r '.api_test.requirements_file' "$config_file")
           else
             echo "Error: Unsupported test case method '$test_case_method'."
             exit 1

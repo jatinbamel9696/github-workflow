@@ -144,8 +144,8 @@ jobs:
   
       - name: dependencies
         run: |
-        # Install dependencies
-        pip install -r ${{ var.REQUIREMENTS_FILE }}
+          # Install dependencies
+          pip install -r ${{ env.REQUIREMENTS_FILE }}
 
 
       # - name: Install Dependencies

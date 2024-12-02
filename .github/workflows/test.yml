@@ -31,59 +31,117 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Parse Input Parameters and Set Environment Variables
-        id: parse_input
+      # - name: Parse Input Parameters and Set Environment Variables
+      #   id: parse_input
+      #   run: |
+      #     INPUT_DICT='${{ github.event.inputs.dict_param }}'
+      #     config_file=".github/workflows/config.json"
+      
+      #     # Parse JSON input
+      #     env=$(echo "$INPUT_DICT" | jq -r '.env')
+      #     test_case_method=$(echo "$INPUT_DICT" | jq -r '.test_case_method')
+      #     email_id="${{ github.event.inputs.email_id }}"
+      
+      #     # Validate environment
+      #     allowed_envs=$(jq -r '.allowed_environment[]' "$config_file")
+      #     if ! echo "$allowed_envs" | grep -qw "$env"; then
+      #       echo "Error: Invalid environment '$env'. Allowed: $allowed_envs"
+      #       exit 1
+      #     fi
+      
+      #     # Fetch dynamic values for test case method
+      #     if ! jq -e --arg method "$test_case_method" '.ec2_catalog[$method] // .api_test[$method]' "$config_file" > /dev/null; then
+      #       echo "Error: Unsupported test case method '$test_case_method'."
+      #       echo "Available methods: $(jq -r '.ec2_catalog | keys_unsorted[], .api_test | keys_unsorted[]' "$config_file" | sort | uniq | paste -s -d, -)"
+      #       exit 1
+      #     fi
+      
+      #     # Fetch specific values for the test case method
+      #     command_prefix=$(jq -r --arg method "$test_case_method" '.ec2_catalog[$method].command_prefix // .api_test[$method].command_prefix' "$config_file")
+      #     command_suffix=$(jq -r --arg method "$test_case_method" '.ec2_catalog[$method].command_suffix // .api_test[$method].command_suffix' "$config_file")
+      #     dynamic_variable_path=$(jq -r --arg method "$test_case_method" '.ec2_catalog[$method].dynamic_variable_path // .api_test[$method].dynamic_variable_path' "$config_file")
+      #     requirements_file=$(jq -r --arg method "$test_case_method" '.ec2_catalog[$method].requirements_file // .api_test[$method].requirements_file' "$config_file")
+      
+      #     # Validate fetched values
+      #     if [[ -z "$command_prefix" || -z "$command_suffix" ]]; then
+      #       echo "Error: Missing command_prefix or command_suffix for method '$test_case_method'."
+      #       exit 1
+      #     fi
+      
+      #     # Construct test command using only prefix and suffix
+      #     test_case_command="$command_prefix $command_suffix"
+      
+      #     # Export environment variables
+      #     echo "EMAIL_ID=$email_id" >> $GITHUB_ENV
+      #     echo "COMMAND_PREFIX=$command_prefix" >> $GITHUB_ENV
+      #     echo "COMMAND_SUFFIX=$command_suffix" >> $GITHUB_ENV
+      #     echo "DYNAMIC_VARIABLE_PATH=$dynamic_variable_path" >> $GITHUB_ENV
+      #     echo "TEST_CASE_COMMAND=$test_case_command" >> $GITHUB_ENV
+      #     echo "REQUIREMENTS_FILE=$requirements_file" >> $GITHUB_ENV
+      #     echo "TEST_CASE_METHOD=$test_case_method" >> $GITHUB_ENV
+      
+      #     # Debug logs
+      #     echo "Constructed TEST_CASE_COMMAND: $test_case_command"
+      
+      - name: Parse config and set up environment
         run: |
+          echo "Parsing input parameters and setting up environment variables"
+          
           INPUT_DICT='${{ github.event.inputs.dict_param }}'
           config_file=".github/workflows/config.json"
-      
-          # Parse JSON input
+          
+          # Parse input parameters
           env=$(echo "$INPUT_DICT" | jq -r '.env')
           test_case_method=$(echo "$INPUT_DICT" | jq -r '.test_case_method')
           email_id="${{ github.event.inputs.email_id }}"
-      
+
           # Validate environment
           allowed_envs=$(jq -r '.allowed_environment[]' "$config_file")
           if ! echo "$allowed_envs" | grep -qw "$env"; then
             echo "Error: Invalid environment '$env'. Allowed: $allowed_envs"
             exit 1
           fi
-      
-          # Fetch dynamic values for test case method
-          if ! jq -e --arg method "$test_case_method" '.ec2_catalog[$method] // .api_test[$method]' "$config_file" > /dev/null; then
+
+          # Fetch global values for ec2_catalog and api_test
+          command_prefix=$(jq -r --arg method "$test_case_method" '.ec2_catalog.command_prefix // .api_test.command_prefix' "$config_file")
+          requirements_file=$(jq -r --arg method "$test_case_method" '.ec2_catalog.requirements_file // .api_test.requirements_file' "$config_file")
+
+          # Fetch specific values for the test case method
+          if [[ "$test_case_method" =~ ^ec2_ ]]; then
+            # Handle as ec2_catalog
+            dynamic_variable_path=$(jq -r --arg method "$test_case_method" '.ec2_catalog[$method].dynamic_variable_path' "$config_file")
+            command_suffix=$(jq -r --arg method "$test_case_method" '.ec2_catalog[$method].command_suffix' "$config_file")
+          elif [[ "$test_case_method" =~ ^api_ ]]; then
+            # Handle as api_test
+            dynamic_variable_path=$(jq -r --arg method "$test_case_method" '.api_test[$method].dynamic_variable_path' "$config_file")
+            command_suffix=$(jq -r --arg method "$test_case_method" '.api_test[$method].command_suffix' "$config_file")
+          else
             echo "Error: Unsupported test case method '$test_case_method'."
-            echo "Available methods: $(jq -r '.ec2_catalog | keys_unsorted[], .api_test | keys_unsorted[]' "$config_file" | sort | uniq | paste -s -d, -)"
             exit 1
           fi
-      
-          # Fetch specific values for the test case method
-          command_prefix=$(jq -r --arg method "$test_case_method" '.ec2_catalog[$method].command_prefix // .api_test[$method].command_prefix' "$config_file")
-          command_suffix=$(jq -r --arg method "$test_case_method" '.ec2_catalog[$method].command_suffix // .api_test[$method].command_suffix' "$config_file")
-          dynamic_variable_path=$(jq -r --arg method "$test_case_method" '.ec2_catalog[$method].dynamic_variable_path // .api_test[$method].dynamic_variable_path' "$config_file")
-          requirements_file=$(jq -r --arg method "$test_case_method" '.ec2_catalog[$method].requirements_file // .api_test[$method].requirements_file' "$config_file")
-      
+
           # Validate fetched values
           if [[ -z "$command_prefix" || -z "$command_suffix" ]]; then
             echo "Error: Missing command_prefix or command_suffix for method '$test_case_method'."
             exit 1
           fi
-      
-          # Construct test command using only prefix and suffix
+
+          # Construct the full test command
           test_case_command="$command_prefix $command_suffix"
-      
-          # Export environment variables
+
+          # Export environment variables for subsequent steps
           echo "EMAIL_ID=$email_id" >> $GITHUB_ENV
           echo "COMMAND_PREFIX=$command_prefix" >> $GITHUB_ENV
           echo "COMMAND_SUFFIX=$command_suffix" >> $GITHUB_ENV
           echo "DYNAMIC_VARIABLE_PATH=$dynamic_variable_path" >> $GITHUB_ENV
           echo "TEST_CASE_COMMAND=$test_case_command" >> $GITHUB_ENV
           echo "REQUIREMENTS_FILE=$requirements_file" >> $GITHUB_ENV
-          echo "TEST_CASE_METHOD=$test_case_method" >> $GITHUB_ENV
-      
-          # Debug logs
-          echo "Constructed TEST_CASE_COMMAND: $test_case_command"
-      
-      
+
+          # Debug logs (for troubleshooting)
+          echo "DEBUG: Command Prefix for $test_case_method: $command_prefix"
+          echo "DEBUG: Command Suffix for $test_case_method: $command_suffix"
+
+
 
       - name: Install Dependencies
         run: |

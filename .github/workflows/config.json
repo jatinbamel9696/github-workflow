@@ -1,6 +1,7 @@
 {
     "allowed_environment": ["development", "test", "production"],
     "ec2_catalog": {
+      "command_prefix": "python -m robot --outputdir Reports --listener allure_robotframework:allure-results",
       "requirements_file": "./ec2_requirements.txt",
       "ec2_al2": {
         "command_prefix": "python -m robot --outputdir Reports --listener allure_robotframework:allure-results",

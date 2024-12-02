@@ -87,12 +87,10 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          if [[ -f "$REQUIREMENTS_FILE" ]]; then
-            echo "Installing dependencies from ${{ env.REQUIREMENTS_FILE }}"
-            pip install -r "${{ env.REQUIREMENTS_FILE }}"
+          if [[ "$TEST_CASE_METHOD" == "ec2_al2" || "$TEST_CASE_METHOD" == "ec2_win" ]]; then
+            pip install -r ec2_requirements.txt
           else
-            echo "Requirements file not found: ${{ env.REQUIREMENTS_FILE }}"
-            exit 1
+            pip install -r api_requirements.txt
           fi
 
       - name: Trigger Testing Framework

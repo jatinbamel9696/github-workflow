@@ -142,16 +142,19 @@ jobs:
           echo "DEBUG: Command Prefix for $test_case_method: $command_prefix"
           echo "DEBUG: Command Suffix for $test_case_method: $command_suffix"
   
-
-
-
-      - name: Install Dependencies
+      - name: dependencies
         run: |
-          if [[ "$TEST_CASE_METHOD" == "ec2_al2" || "$TEST_CASE_METHOD" == "ec2_win" ]]; then
-            pip install -r ec2_requirements.txt
-          else
-            pip install -r api_requirements.txt
-          fi
+        # Install dependencies
+        pip install -r ${{ var.REQUIREMENTS_FILE }}
+
+
+      # - name: Install Dependencies
+      #   run: |
+      #     if [[ "$TEST_CASE_METHOD" == "ec2_al2" || "$TEST_CASE_METHOD" == "ec2_win" ]]; then
+      #       pip install -r ec2_requirements.txt
+      #     else
+      #       pip install -r api_requirements.txt
+      #     fi
 
       - name: Trigger Testing Framework
         id: trigger_testing

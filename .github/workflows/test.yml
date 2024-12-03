@@ -31,6 +31,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Edge Install   
+        uses: browser-actions/setup-edge@v1
+        with:
+          edge-version: beta
+
       # - name: Parse Input Parameters and Set Environment Variables
       #   id: parse_input
       #   run: |

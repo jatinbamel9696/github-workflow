@@ -31,10 +31,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Edge Install   
-        uses: browser-actions/setup-edge@v1
-        with:
-          edge-version: beta
+      - name: Install Edge Beta
+        run: |
+          wget -q https://packages.microsoft.com/repos/edge/pool/main/m/microsoft-edge-beta/microsoft-edge-beta_*.deb -O edge-beta.deb
+          sudo dpkg -i edge-beta.deb || sudo apt-get -f install -y
+      
 
       # - name: Parse Input Parameters and Set Environment Variables
       #   id: parse_input

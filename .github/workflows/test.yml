@@ -163,7 +163,7 @@ jobs:
 
       - name: Trigger Testing Framework
         # if: ${{ failure() && steps.test.conclusion == 'failure' }}
-        if: steps.test.conclusion == 'failure'
+        if: ${{ steps.test.outcome == 'failure' }}
         id: trigger_testing
         run: |
           echo "Running command: ${{ env.TEST_CASE_COMMAND }}"

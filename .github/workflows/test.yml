@@ -11,6 +11,10 @@ on:
         description: "Email ID to use for notifications."
         required: false
         default: ""
+      browser: 
+        description: "Email ID to use for notifications."
+        required: false
+        default: "edge"
 
 env:
   GITHUB_RUN_ID: ${{ github.run_id }}
@@ -31,11 +35,26 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Install Edge Beta
+      # Install Microsoft Edge if selected
+      - name: Install Edge
+        if: ${{ github.event.inputs.browser == 'edge' }}
         run: |
-          wget -q https://packages.microsoft.com/repos/edge/pool/main/m/microsoft-edge-beta/microsoft-edge-beta_*.deb -O edge-beta.deb
-          sudo dpkg -i edge-beta.deb || sudo apt-get -f install -y
-      
+          echo "Installing Microsoft Edge..."
+          # sudo apt update
+          sudo apt install -y wget gnupg2 software-properties-common
+          wget -q https://packages.microsoft.com/keys/microsoft.asc -O- | sudo apt-key add -
+          sudo add-apt-repository "deb [arch=amd64] https://packages.microsoft.com/repos/edge stable main"
+          # sudo apt update
+          sudo apt install -y --no-install-recommends microsoft-edge-stable
+
+      # Cleanup Edge if it was selected
+      - name: Cleanup Edge
+        if: ${{ github.event.inputs.browser == 'edge' }}
+        run: |
+          echo "Removing Microsoft Edge..."
+          sudo apt remove --purge -y microsoft-edge-stable
+          sudo apt autoremove -y
+              
 
       # - name: Parse Input Parameters and Set Environment Variables
       #   id: parse_input

@@ -162,8 +162,7 @@ jobs:
       #     fi
 
       - name: Trigger Testing Framework
-        # if: steps.test.outcome == 'success' 
-        if: ${{ failure() && steps.tes.conclusion == 'failure' }}
+        if: ${{ failure() && steps.test.conclusion == 'failure' }}
         id: trigger_testing
         run: |
           echo "Running command: ${{ env.TEST_CASE_COMMAND }}"
